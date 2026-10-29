@@ -1,217 +1,150 @@
-# 🌳 Family Heritage Tree — ITT588 Lab Work 4
+# 🌳 Pokok Silsilah Keluarga Zamaksyari — ITT588 Lab Work 4
 
-> **Name:** Siti Aisyah binti Zamaksyari  
-> **Subject:** ITT588 — Web Application Development  
-> **Lab:** Lab Work 4 — Family Heritage Tree  
-
----
-
-## 📋 Objectives
-
-- Retrieve and process family heritage data from a **JSON dataset** using JavaScript
-- Apply JavaScript to **display family member information** and relationships dynamically on a web page
-- Develop a **front-end application** to visualise family relationships (parents, spouses, children)
-- Implement **data filtering and navigation** features to explore family heritage information
+> **Nama Pelajar:** Siti Aisyah binti Zamaksyari  
+> **Kursus:** ITT588 — Web Application Development  
+> **Tugasan:** Lab Work 4 (Family Heritage Tree)  
+> **GitHub Repository:** [https://github.com/aisyahzmk/zamaksyari-family-roots](https://github.com/aisyahzmk/zamaksyari-family-roots)  
 
 ---
 
-## 🛠️ Technologies Used
+## 📋 Objektif Makmal (Lab Objectives)
 
-| Technology | Purpose |
-|---|---|
-| **HTML5** | Page structure and layout |
-| **CSS3** | Custom styling with warm heritage theme |
-| **Vanilla JavaScript** | Application logic (MVC pattern) |
-| **JSON** | Family data storage (geoseiden schema) |
-| **Node.js** | Local development server |
+- **Mendapatkan & Memproses Data JSON:** Memuat turun dan memproses data silsilah keluarga daripada fail JSON menggunakan JavaScript (`fetch()`).
+- **Paparan Dinamik:** Mengaplikasikan JavaScript untuk memaparkan maklumat ahli keluarga dan hierarki hubungan secara dinamik pada laman web.
+- **Visualisasi Hubungan Keluarga:** Membina aplikasi *front-end* untuk memvisualisasikan hubungan keluarga (ibu bapa, perkahwinan, anak-anak, adik-beradik) menggunakan HTML, CSS, dan JavaScript.
+- **Ciri Carian & Navigasi Interaktif:** Melaksanakan ciri tapisan mengikut jantina, kotak carian nama/pekerjaan, serta pautan navigasi antara ahli keluarga.
 
 ---
 
-## 📁 Project Structure (MVC Architecture)
+## 🛠️ Teknologi yang Digunakan (Pure Web Standards)
+
+| Komponen | Teknologi | Keterangan |
+|---|---|---|
+| **Struktur** | **HTML5** | Elemen semantik, header, navigation, content area, modal, & sidebar |
+| **Gaya** | **CSS3** | Tema warisan moden (*warm heritage palette*), carta hierarki bersambung |
+| **Logik** | **Vanilla JavaScript** | Dipisahkan mengikut corak reka bentuk **Model-View-Controller (MVC)** |
+| **Data** | **JSON** | Struktur data perhubungan mengikut piawaian skema *geoseiden* |
+
+---
+
+## 🏛️ Seni Bina MVC (Model–View–Controller)
+
+Aplikasi ini dibina mengikut piawaian seni bina perisian **MVC** tanpa bergantung kepada sebarang *framework* luaran:
 
 ```
-family-tree/
-└── public/
-    ├── index.html                   ← Entry point
-    ├── css/
-    │   └── style.css                ← All styling
-    ├── data/
-    │   └── people.json              ← Family dataset (geoseiden format)
-    ├── images/
-    │   ├── abang.jpg
-    │   ├── kakak.jpg
-    │   └── saya.jpg
-    └── js/
-        ├── model/
-        │   └── FamilyModel.js       ← MODEL: data loading & queries
-        ├── view/
-        │   └── FamilyView.js        ← VIEW: DOM rendering
-        └── controller/
-            └── FamilyController.js  ← CONTROLLER: event handling & logic
+zamaksyari-family-roots/
+├── css/
+│   └── style.css                ← Gaya & garisan penyambung hierarki pokok
+├── data/
+│   └── people.json              ← Dataset keluarga (format geoseiden)
+├── images/
+│   ├── ayah.jpg
+│   ├── ibu.jpg
+│   ├── abang.jpg
+│   ├── kakak.jpg
+│   ├── saya.jpg
+│   ├── adik_perempuan.jpg
+│   ├── adik_lelaki.jpg
+│   └── bongsu.jpg
+├── js/
+│   ├── model/
+│   │   └── FamilyModel.js       ← [MODEL] Memproses data, hubungan & carian
+│   ├── view/
+│   │   └── FamilyView.js        ← [VIEW] Paparan kad, pokok bersambung & profil
+│   └── controller/
+│       └── FamilyController.js  ← [CONTROLLER] Menyelaras acara & interaksi pengguna
+├── index.html                   ← Laman utama aplikasi web
+└── README.md                    ← Laporan dokumentasi makmal
 ```
 
----
+### 1. 🗄️ Model (`js/model/FamilyModel.js`)
+* Memuatkan data `people.json` melalui panggilan `fetch()`.
+* Mengandungi logik perhubungan: `getFather()`, `getMother()`, `getChildren()`, `getSiblings()`, dan `getSpouses()`.
+* Mengira tahap generasi keluarga secara algoritma menggunakan carian graf (*BFS*).
+* Menyediakan fungsi carian kata kunci dan tapisan jantina.
 
-## 🏛️ MVC Pattern Explained
+### 2. 🎨 View (`js/view/FamilyView.js`)
+* Menguruskan paparan DOM secara menyeluruh tanpa logik data.
+* **Pokok Silsilah Bersambung:** Garisan *tree trunk* dan cawangan mendatar menghubungkan Ayah & Ibu kepada semua 6 orang anak.
+* **Paparan Nama Panggilan:** Kad di pokok silsilah hanya memaparkan nama panggilan (*Ayah, Ibu, Abang, Angah, Ateh, Kakcik, Iwan, Adik*).
+* **Pembongkaran Nama Penuh:** Nama sebenar dan maklumat peribadi hanya dipaparkan apabila pengguna menekan kad untuk membuka paparan Profil.
+* **Foto Potret Sebenar:** Menampilkan foto asli bagi setiap ahli keluarga.
 
-This application strictly follows the **Model–View–Controller** design pattern:
-
-### 🗄️ Model — `FamilyModel.js`
-- Loads `people.json` via `fetch()`
-- Parses geoseiden schema fields (`dob`, `fatherId`, `motherId`, `spouses`, `bloodGroup`)
-- Provides relationship query methods: `getFather()`, `getMother()`, `getChildren()`, `getSiblings()`, `getSpouses()`
-- Computes generation groups dynamically using BFS
-- Handles search and gender filtering
-
-### 🎨 View — `FamilyView.js`
-- Pure DOM rendering — zero business logic
-- Renders: sidebar member list, tree cards, profile page, statistics charts
-- Displays real photos where available, falls back to initials
-- Renders relationship chips as clickable navigation buttons
-
-### 🎮 Controller — `FamilyController.js`
-- Bootstraps the application and loads data
-- Binds all user events (clicks, search input, filter chips, navigation)
-- Orchestrates data flow between Model and View
-- Manages application state (selected person, active view, filters)
+### 3. 🎮 Controller (`js/controller/FamilyController.js`)
+* Bertindak sebagai jambatan antara `FamilyModel` dan `FamilyView`.
+* Mengikat semua *event listener* (input carian, cip penapis, butang navigasi, dan klik kad).
+* Menjaga keadaan semasa (*state*) aplikasi.
 
 ---
 
-## 📊 Family Dataset — JSON Schema
+## 👨‍👩‍👧‍👦 Data Ahli Keluarga Zamaksyari
 
-The dataset follows the **geoseiden Family-Tree schema**:
+| ID | Panggilan | Nama Penuh | Peranan / Pekerjaan | Tarikh Lahir | Status | Foto |
+|---|---|---|---|---|---|---|
+| `p1` | **Ayah** | Zamaksyari bin Abd Ghani | Ketua Keluarga · Guru (Cikgu) | 02 Jan 1974 | Hidup | `ayah.jpg` |
+| `p2` | **Ibu** | Zalina binti Long | Suri Teladan · Pegawai JHEAINS | 17 Mac 1974 | Hidup | `ibu.jpg` |
+| `p3` | **Abang** | Muhammad Firdaus bin Zamaksyari | Anak Sulung · Pejabat Menteri Besar | 13 Jul 2001 | Hidup | `abang.jpg` |
+| `p4` | **Angah** | Siti Zulaikha binti Zamaksyari | Anak Kedua · Asst Secretarial Executive | 12 Dis 2002 | Hidup | `kakak.jpg` |
+| `p5` | **Ateh (Saya)** | Siti Aisyah binti Zamaksyari | Anak Ketiga · Pelajar Universiti (IT) | 14 Mac 2005 | Hidup | `saya.jpg` |
+| `p6` | **Kakcik** | Siti Khadijah Nur binti Zamaksyari | Adik Perempuan · Pelajar Tingkatan 6 | 19 Jun 2007 | Hidup | `adik_perempuan.jpg` |
+| `p7` | **Iwan** | Muhammad Ridhwan bin Zamaksyari | Adik Lelaki · Pelajar Tingkatan 5 | 11 Jun 2009 | Hidup | `adik_lelaki.jpg` |
+| `p8` | **Adik** | Siti Fatimah Nur binti Zamaksyari | Anak Bongsu · Pelajar Darjah 3 | 28 Dis 2017 | Hidup | `bongsu.jpg` |
+
+---
+
+## 📊 Skema JSON (Rujukan geoseiden)
+
+Struktur `data/people.json` mengikut piawaian [geoseiden/Family-Tree](https://github.com/geoseiden/Family-Tree/blob/main/public/data/people.json):
 
 ```json
 {
-  "id": "p1",
-  "firstName": "Zamaksyari",
-  "lastName": "Abd Ghani",
-  "gender": "male",
-  "dob": "1965-06-01",
+  "id": "p5",
+  "nickname": "Ateh",
+  "firstName": "Siti Aisyah",
+  "lastName": "Zamaksyari",
+  "gender": "female",
+  "dob": "2005-03-14",
   "dateOfDeath": "",
-  "profession": "Head of Family",
-  "bloodGroup": "O+",
-  "photo": "",
-  "fatherId": null,
-  "motherId": null,
-  "spouses": [
-    { "id": "p2", "status": "married" }
-  ],
-  "bio": "The patriarch of the Zamaksyari family..."
+  "profession": "University Student (IT)",
+  "photo": "images/saya.jpg",
+  "fatherId": "p1",
+  "motherId": "p2",
+  "spouses": [],
+  "bio": "Pelajar Teknologi Maklumat yang meminati pembangunan aplikasi web dan pengaturcaraan."
 }
 ```
 
-### Key schema fields:
-| Field | Type | Description |
-|---|---|---|
-| `id` | string | Unique identifier (e.g. `"p1"`) |
-| `dob` | string | Date of birth `"YYYY-MM-DD"` |
-| `dateOfDeath` | string | Date of death, empty `""` = living |
-| `profession` | string | Occupation |
-| `bloodGroup` | string | Blood type (e.g. `"O+"`) |
-| `fatherId` | string\|null | ID reference to father |
-| `motherId` | string\|null | ID reference to mother |
-| `spouses` | array | `[{ id, status }]` — status: married/divorced/widowed |
+---
+
+## 🖥️ Ciri-ciri Utama Aplikasi
+
+- ✅ **3 Mod Paparan:** Pokok Silsilah (*Tree*), Profil Terperinci (*Profile*), dan Statistik (*Stats*).
+- ✅ **Carian Masa Nyata (*Real-Time Search*):** Carian pantas mengikut nama panggilan, nama penuh, atau kerjaya.
+- ✅ **Penapis Jantina:** Butang interaktif Lelaki / Perempuan di bahagian sisi.
+- ✅ **Navigasi Hubungan Silsilah:** Setiap ahli keluarga yang berkaitan (Ibu, Bapa, Adik-beradik) boleh diklik untuk melayari profil mereka secara terus.
+- ✅ **Maklum Balas Toast:** Notifikasi ringkas setiap kali ahli keluarga dipilih.
 
 ---
 
-## 👨‍👩‍👧‍👦 Family Members
+## 🚀 Cara Menjalankan Aplikasi Secara Tempatan
 
-| ID | Name | Role / Profession | Date of Birth | Blood Group | Status | Photo |
-|---|---|---|---|---|---|---|
-| p1 | Zamaksyari bin Abd Ghani | Father · Teacher | 02 Jan 1974 | O+ | Living | `ayah.jpg` |
-| p2 | Zalina binti Long | Mother · JHEAINS Officer | 17 Mar 1974 | A+ | Living | `ibu.jpg` |
-| p3 | Muhammad Firdaus bin Zamaksyari | Eldest Son · Chief Minister's Office | 13 Jul 2001 | O+ | Living | `abang.jpg` |
-| p4 | Siti Zulaikha binti Zamaksyari | Eldest Daughter · Asst Secretarial Exec | 12 Dec 2002 | A+ | Living | `kakak.jpg` |
-| p5 | **Siti Aisyah binti Zamaksyari** | **Myself · IT Student** | 14 Mar 2005 | B+ | Living | `saya.jpg` |
-| p6 | Siti Khadijah Nur binti Zamaksyari | Younger Sister · Form 6 Student | 19 Jun 2007 | AB+ | Living | `adik_perempuan.jpg` |
-| p7 | Muhammad Ridhwan bin Zamaksyari | Younger Brother · Form 5 Student | 11 Jun 2009 | O+ | Living | `adik_lelaki.jpg` |
-| p8 | Siti Fatimah Nur binti Zamaksyari | Youngest Child · Standard 3 Student | 28 Dec 2017 | A+ | Living | `bongsu.jpg` |
-
----
-
-## 🖥️ Application Screenshots
-
-### 🌳 Tree View
-<!-- Replace with your actual screenshot -->
-![Tree View](screenshots/ss-tree.png)
-
-*All family members displayed by generation. Click any card to view their full profile.*
-
----
-
-### 👤 Profile View
-<!-- Replace with your actual screenshot -->
-![Profile View](screenshots/ss-profile.png)
-
-*Detailed profile showing personal info, blood group, relationships (father, mother, siblings). All relationship buttons are clickable for navigation.*
-
----
-
-### 📊 Statistics View
-<!-- Replace with your actual screenshot -->
-![Stats View](screenshots/ss-stats.png)
-
-*Visual bar charts showing family composition — gender breakdown, blood groups, and members per generation.*
-
----
-
-### 🔍 Search & Filter
-<!-- Replace with your actual screenshot -->
-![Search Filter](screenshots/ss-search.png)
-
-*Real-time search by name or profession. Gender filter chips in the sidebar.*
-
----
-
-### 📄 JSON Dataset & MVC Code
-<!-- Replace with your actual screenshot -->
-![JSON Code](screenshots/ss-json.png)
-
-*`people.json` dataset following the geoseiden Family-Tree schema.*
-
----
-
-## ⚙️ Key Features
-
-- ✅ **3 Views** — Tree / Profile / Statistics
-- ✅ **Real-time search** — filter by name or profession
-- ✅ **Gender filter** — Male / Female chips
-- ✅ **Clickable relationships** — navigate between family members
-- ✅ **Photo support** — real photos for Abang, Kakak, and myself
-- ✅ **Blood group display** — shown on every card
-- ✅ **Responsive design** — works on different screen sizes
-- ✅ **Toast notifications** — feedback on every interaction
-- ✅ **Geoseiden JSON schema** — follows the required data format
-
----
-
-## 🚀 How to Run
-
-1. Clone this repository:
+1. **Clone repository ini:**
    ```bash
-   git clone https://github.com/YOUR_USERNAME/ITT588-Lab4-FamilyTree.git
+   git clone https://github.com/aisyahzmk/zamaksyari-family-roots.git
+   cd zamaksyari-family-roots
    ```
 
-2. Navigate to the folder:
+2. **Jalankan pelayan tempatan (sebarang web server / Node.js):**
    ```bash
-   cd ITT588-Lab4-FamilyTree
+   # Menggunakan Node.js
+   npx serve .
+   
+   # Atau menggunakan Python
+   python -m http.server 8000
    ```
 
-3. Start a local server (requires Node.js):
-   ```bash
-   node -e "const http=require('http'),fs=require('fs'),path=require('path');const root=path.join(__dirname,'public');const mime={'.html':'text/html','.css':'text/css','.js':'application/javascript','.json':'application/json','.jpg':'image/jpeg'};http.createServer((req,res)=>{let f=path.join(root,req.url==='/'?'/index.html':req.url);if(!fs.existsSync(f)){res.writeHead(404);res.end();return;}res.writeHead(200,{'Content-Type':mime[path.extname(f)]||'text/plain'});fs.createReadStream(f).pipe(res);}).listen(8765,()=>console.log('Open: http://localhost:8765'));"
-   ```
-
-4. Open browser → `http://localhost:8765`
+3. Buka pelayar web dan akses alamat yang tertera (contoh: `http://localhost:8000` atau `http://localhost:3000`).
 
 ---
 
-## 📚 References
-
-- Dataset schema reference: [geoseiden/Family-Tree](https://github.com/geoseiden/Family-Tree/blob/main/public/data/people.json)
-- Lab requirement: ITT588 Lab Work 4
-
----
-
-*Submitted for ITT588 Lab Work 4 — © 2026 Siti Aisyah binti Zamaksyari*
+*Disediakan untuk ITT588 Lab Work 4 — © 2026 Siti Aisyah binti Zamaksyari*

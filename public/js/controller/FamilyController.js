@@ -20,7 +20,7 @@ class FamilyController {
 
   async init() {
     try {
-      await this.model.load('./data/people.json');
+      try { await this.model.load('./data/people.json'); } catch(e) { await this.model.load('./public/data/people.json'); }
       this._bindEvents();
       this._renderAll();
       this.view.showToast('✅ Family data loaded successfully!');

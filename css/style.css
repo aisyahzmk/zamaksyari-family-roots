@@ -1,0 +1,791 @@
+/* ============================================================
+   FAMILY TREE APP — Main Stylesheet
+   Design: Warm heritage palette with elegant serif typography
+   ============================================================ */
+
+:root {
+  --clr-bg:       #fdf6ec;
+  --clr-surface:  #ffffff;
+  --clr-primary:  #7b4f2e;
+  --clr-primary-light: #c4874b;
+  --clr-accent:   #d4a96a;
+  --clr-accent2:  #4a7c59;
+  --clr-text:     #2c1a0e;
+  --clr-muted:    #8a7060;
+  --clr-border:   #e0cdb8;
+  --clr-male:     #3a6186;
+  --clr-female:   #89216b;
+  --clr-deceased: #888888;
+  --shadow-sm:    0 2px 8px rgba(0,0,0,.08);
+  --shadow-md:    0 4px 20px rgba(0,0,0,.12);
+  --shadow-lg:    0 8px 40px rgba(0,0,0,.18);
+  --radius:       12px;
+  --transition:   .25s ease;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  background: var(--clr-bg);
+  color: var(--clr-text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--clr-bg); }
+::-webkit-scrollbar-thumb { background: var(--clr-accent); border-radius: 99px; }
+
+/* =========================================================
+   HEADER
+   ========================================================= */
+#app-header {
+  background: linear-gradient(135deg, var(--clr-primary) 0%, #3d1f0a 100%);
+  color: #fff;
+  padding: 0 2rem;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: var(--shadow-md);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+#app-header .brand {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  font-size: 1.3rem;
+  font-weight: 700;
+  letter-spacing: .02em;
+}
+
+#app-header .brand-icon { font-size: 1.6rem; }
+
+nav#main-nav { display: flex; gap: .5rem; }
+
+nav#main-nav .nav-btn {
+  background: rgba(255,255,255,.12);
+  color: #fff;
+  border: 1px solid rgba(255,255,255,.25);
+  padding: .45rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: .85rem;
+  font-weight: 500;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+}
+
+nav#main-nav .nav-btn:hover,
+nav#main-nav .nav-btn.active {
+  background: rgba(255,255,255,.28);
+  border-color: rgba(255,255,255,.5);
+}
+
+/* =========================================================
+   LAYOUT
+   ========================================================= */
+#app-main {
+  display: flex;
+  height: calc(100vh - 64px);
+  overflow: hidden;
+}
+
+/* ── Sidebar ── */
+#sidebar {
+  width: 300px;
+  min-width: 300px;
+  background: var(--clr-surface);
+  border-right: 1px solid var(--clr-border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: width var(--transition);
+}
+
+#sidebar.collapsed { width: 0; min-width: 0; overflow: hidden; }
+
+.sidebar-header {
+  padding: 1rem 1.2rem .6rem;
+  border-bottom: 1px solid var(--clr-border);
+}
+
+.sidebar-header h3 {
+  font-size: .8rem;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: var(--clr-muted);
+  margin-bottom: .6rem;
+}
+
+#search-input {
+  width: 100%;
+  padding: .5rem .75rem;
+  border: 1px solid var(--clr-border);
+  border-radius: 8px;
+  font-size: .85rem;
+  background: var(--clr-bg);
+  color: var(--clr-text);
+  outline: none;
+  transition: border-color var(--transition);
+}
+#search-input:focus { border-color: var(--clr-primary); }
+
+.filter-row {
+  display: flex;
+  gap: .4rem;
+  margin-top: .5rem;
+}
+
+.filter-chip {
+  flex: 1;
+  padding: .3rem .5rem;
+  border: 1px solid var(--clr-border);
+  border-radius: 99px;
+  background: transparent;
+  font-size: .75rem;
+  cursor: pointer;
+  color: var(--clr-muted);
+  transition: var(--transition);
+  text-align: center;
+}
+.filter-chip:hover { background: var(--clr-bg); }
+.filter-chip.active { background: var(--clr-primary); color: #fff; border-color: var(--clr-primary); }
+
+#member-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: .5rem;
+}
+
+.member-list-item {
+  display: flex;
+  align-items: center;
+  gap: .7rem;
+  padding: .6rem .75rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background var(--transition);
+  border: 1px solid transparent;
+}
+.member-list-item:hover { background: var(--clr-bg); }
+.member-list-item.selected { background: #f5ead8; border-color: var(--clr-accent); }
+
+.member-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #fff;
+  flex-shrink: 0;
+}
+.avatar-male   { background: linear-gradient(135deg, var(--clr-male), #5a8ab0); }
+.avatar-female { background: linear-gradient(135deg, var(--clr-female), #b05090); }
+.avatar-deceased { opacity: .6; filter: grayscale(60%); }
+
+.member-info-small { flex: 1; min-width: 0; }
+.member-info-small .name { font-size: .88rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.member-info-small .meta { font-size: .75rem; color: var(--clr-muted); }
+
+.gen-badge {
+  font-size: .65rem;
+  padding: .15rem .4rem;
+  border-radius: 99px;
+  background: var(--clr-bg);
+  color: var(--clr-muted);
+  border: 1px solid var(--clr-border);
+  white-space: nowrap;
+}
+
+/* ── Content Area ── */
+#content-area {
+  flex: 1;
+  overflow: auto;
+  position: relative;
+}
+
+/* =========================================================
+   VIEWS
+   ========================================================= */
+.view { display: none; width: 100%; height: 100%; }
+.view.active { display: block; }
+
+/* ── Tree View ── */
+#view-tree {
+  padding: 2rem;
+  min-height: 100%;
+}
+
+#view-tree .tree-title {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--clr-primary);
+  margin-bottom: 2rem;
+  padding-bottom: .75rem;
+  border-bottom: 2px solid var(--clr-border);
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+}
+
+/* =========================================================
+   HIERARCHICAL FAMILY TREE / TREE MAP CONNECTORS
+   ========================================================= */
+.tree-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1rem 1rem 3rem;
+  min-width: 980px;
+}
+
+.tree-parents-block {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  gap: 3rem;
+}
+
+.marriage-bridge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+
+.marriage-line {
+  position: absolute;
+  top: 50%;
+  left: -3rem;
+  right: -3rem;
+  height: 3px;
+  background: #c4874b;
+  z-index: 1;
+}
+
+.marriage-pill {
+  position: relative;
+  z-index: 2;
+  background: var(--clr-surface);
+  border: 2px solid #c4874b;
+  color: var(--clr-primary);
+  border-radius: 99px;
+  padding: .3rem .75rem;
+  font-size: .78rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: .35rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.tree-trunk {
+  width: 3px;
+  height: 42px;
+  background: #c4874b;
+  margin: 0 auto;
+}
+
+.tree-children-container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.children-row-branch {
+  display: flex;
+  gap: 1.4rem;
+  justify-content: center;
+  position: relative;
+  padding-top: 24px;
+}
+
+/* Horizontal line linking children from center of first to center of last */
+.children-row-branch::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: calc(150px / 2);
+  right: calc(150px / 2);
+  height: 3px;
+  background: #c4874b;
+}
+
+.child-tree-node {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+
+.child-tree-node::before {
+  content: '';
+  position: absolute;
+  top: -24px;
+  width: 3px;
+  height: 24px;
+  background: #c4874b;
+}
+
+/* ── Person Card styling with Nickname ── */
+.person-card {
+  background: var(--clr-surface);
+  border: 2px solid var(--clr-border);
+  border-radius: var(--radius);
+  padding: 1rem .85rem .85rem;
+  width: 150px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .45rem;
+  cursor: pointer;
+  transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
+  box-shadow: var(--shadow-sm);
+  text-align: center;
+  position: relative;
+}
+
+.person-card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--clr-primary-light);
+}
+
+.person-card.selected {
+  border-color: var(--clr-primary);
+  box-shadow: 0 0 0 3px rgba(123,79,46,.25), var(--shadow-md);
+}
+
+.person-card .card-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(0,0,0,.15);
+  margin-bottom: .2rem;
+}
+
+.person-card .card-nickname {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--clr-primary);
+  line-height: 1.2;
+}
+
+.person-card .card-role {
+  font-size: .7rem;
+  color: var(--clr-muted);
+  line-height: 1.25;
+  min-height: 2.4em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.card-hint {
+  font-size: .65rem;
+  color: var(--clr-primary-light);
+  font-weight: 600;
+  padding: .2rem .5rem;
+  background: #fdf5eb;
+  border-radius: 99px;
+  border: 1px solid #ebd3be;
+  margin-top: .2rem;
+}
+
+.card-badge-me {
+  position: absolute;
+  top: -9px;
+  right: -6px;
+  background: linear-gradient(135deg, #f39c12, #e67e22);
+  color: #fff;
+  font-size: .65rem;
+  font-weight: 800;
+  padding: .15rem .5rem;
+  border-radius: 99px;
+  box-shadow: 0 2px 4px rgba(0,0,0,.2);
+  text-transform: uppercase;
+  letter-spacing: .05em;
+}
+
+/* ── Profile View Nickname Reveal ── */
+.profile-nickname-badge {
+  display: inline-block;
+  background: #fdf0e0;
+  color: var(--clr-primary);
+  border: 1px solid var(--clr-accent);
+  padding: .2rem .75rem;
+  border-radius: 99px;
+  font-size: .82rem;
+  font-weight: 700;
+  margin-bottom: .4rem;
+}
+  border-radius: 50%;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.person-card .card-name {
+  font-size: .8rem;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--clr-text);
+}
+
+.person-card .card-years {
+  font-size: .7rem;
+  color: var(--clr-muted);
+}
+
+.person-card .card-role {
+  font-size: .68rem;
+  color: var(--clr-primary-light);
+  padding: .15rem .5rem;
+  background: #fdf0e0;
+  border-radius: 99px;
+  border: 1px solid var(--clr-accent);
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.deceased-stamp {
+  position: absolute;
+  top: 4px;
+  right: 6px;
+  font-size: .6rem;
+  color: var(--clr-deceased);
+}
+
+/* ── Detail Panel (Profile View) ── */
+#view-profile {
+  padding: 2rem;
+}
+
+.profile-card {
+  max-width: 780px;
+  margin: 0 auto;
+  background: var(--clr-surface);
+  border-radius: 16px;
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+}
+
+.profile-banner {
+  height: 120px;
+  background: linear-gradient(135deg, var(--clr-primary) 0%, #c4874b 100%);
+  position: relative;
+}
+
+.profile-banner.female {
+  background: linear-gradient(135deg, var(--clr-female) 0%, #c07090 100%);
+}
+
+.profile-body {
+  padding: 1.5rem 2rem 2rem;
+  position: relative;
+}
+
+.profile-avatar-lg {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  border: 4px solid var(--clr-surface);
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  top: -45px;
+  left: 2rem;
+}
+
+.profile-header-info { padding-top: 55px; }
+
+.profile-header-info h2 {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--clr-text);
+}
+
+.profile-header-info .subtitle {
+  font-size: .9rem;
+  color: var(--clr-muted);
+  margin-top: .2rem;
+}
+
+.profile-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.info-section h4 {
+  font-size: .75rem;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: var(--clr-muted);
+  margin-bottom: .75rem;
+  padding-bottom: .4rem;
+  border-bottom: 1px solid var(--clr-border);
+}
+
+.info-row {
+  display: flex;
+  gap: .5rem;
+  margin-bottom: .5rem;
+  font-size: .88rem;
+}
+
+.info-row .label { color: var(--clr-muted); min-width: 90px; }
+.info-row .value { font-weight: 500; }
+
+.relation-chips { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: .25rem; }
+
+.relation-chip {
+  padding: .3rem .65rem;
+  border-radius: 8px;
+  font-size: .8rem;
+  cursor: pointer;
+  font-weight: 500;
+  transition: var(--transition);
+  border: 1px solid var(--clr-border);
+  background: var(--clr-bg);
+  display: flex;
+  align-items: center;
+  gap: .35rem;
+}
+.relation-chip:hover { background: var(--clr-primary); color: #fff; border-color: var(--clr-primary); }
+.relation-chip .chip-icon { font-size: .9rem; }
+
+.bio-section {
+  margin-top: 1.5rem;
+  padding: 1rem 1.2rem;
+  background: var(--clr-bg);
+  border-radius: 10px;
+  border-left: 4px solid var(--clr-accent);
+  font-size: .9rem;
+  line-height: 1.7;
+  color: var(--clr-text);
+  font-style: italic;
+}
+
+.profile-nav-btns {
+  display: flex;
+  gap: .75rem;
+  margin-top: 1.5rem;
+}
+
+.btn {
+  padding: .55rem 1.2rem;
+  border-radius: 8px;
+  font-size: .88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+}
+.btn-primary { background: var(--clr-primary); color: #fff; }
+.btn-primary:hover { background: #5a3520; }
+.btn-outline { background: transparent; color: var(--clr-primary); border: 2px solid var(--clr-primary); }
+.btn-outline:hover { background: var(--clr-primary); color: #fff; }
+
+/* ── Stats / Dashboard View ── */
+#view-stats {
+  padding: 2rem;
+}
+
+.stats-title {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--clr-primary);
+  margin-bottom: 1.5rem;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.stat-card {
+  background: var(--clr-surface);
+  border-radius: 12px;
+  padding: 1.2rem;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--clr-border);
+  display: flex;
+  flex-direction: column;
+  gap: .3rem;
+}
+
+.stat-card .stat-icon { font-size: 1.8rem; }
+.stat-card .stat-value { font-size: 2rem; font-weight: 800; color: var(--clr-primary); }
+.stat-card .stat-label { font-size: .8rem; color: var(--clr-muted); }
+
+.chart-section {
+  background: var(--clr-surface);
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--clr-border);
+  margin-bottom: 1.5rem;
+}
+
+.chart-section h4 {
+  font-size: .85rem;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--clr-muted);
+  margin-bottom: 1rem;
+}
+
+.bar-chart { display: flex; flex-direction: column; gap: .6rem; }
+
+.bar-row { display: flex; align-items: center; gap .75rem; }
+.bar-row { display: flex; align-items: center; gap: .75rem; }
+.bar-label { width: 110px; font-size: .82rem; color: var(--clr-text); flex-shrink: 0; }
+.bar-track { flex: 1; height: 20px; background: var(--clr-bg); border-radius: 99px; overflow: hidden; }
+.bar-fill {
+  height: 100%;
+  border-radius: 99px;
+  background: linear-gradient(90deg, var(--clr-primary), var(--clr-accent));
+  transition: width .8s cubic-bezier(.4,0,.2,1);
+}
+.bar-count { width: 28px; text-align: right; font-size: .82rem; font-weight: 600; color: var(--clr-muted); }
+
+/* ── Modal ── */
+#modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.45);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--transition);
+}
+#modal-overlay.open { opacity: 1; pointer-events: all; }
+
+#modal-box {
+  background: var(--clr-surface);
+  border-radius: 16px;
+  padding: 2rem;
+  max-width: 520px;
+  width: 90%;
+  box-shadow: var(--shadow-lg);
+  transform: scale(.95);
+  transition: transform var(--transition);
+  max-height: 80vh;
+  overflow-y: auto;
+}
+#modal-overlay.open #modal-box { transform: scale(1); }
+
+.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.2rem; }
+.modal-header h3 { font-size: 1.2rem; font-weight: 700; }
+.modal-close { background: none; border: none; font-size: 1.4rem; cursor: pointer; color: var(--clr-muted); }
+.modal-close:hover { color: var(--clr-text); }
+
+/* ── Toast ── */
+#toast {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  background: var(--clr-primary);
+  color: #fff;
+  padding: .7rem 1.2rem;
+  border-radius: 10px;
+  font-size: .88rem;
+  box-shadow: var(--shadow-md);
+  transform: translateY(100px);
+  opacity: 0;
+  transition: all .3s ease;
+  z-index: 300;
+}
+#toast.show { transform: translateY(0); opacity: 1; }
+
+/* ── Empty / Loading States ── */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 300px;
+  gap: .75rem;
+  color: var(--clr-muted);
+}
+.empty-state .empty-icon { font-size: 3rem; }
+.empty-state p { font-size: 1rem; }
+
+/* ── Blood Group Badge on Card ── */
+.blood-badge {
+  font-size: .65rem;
+  color: #c0392b;
+  background: #fde8e8;
+  border: 1px solid #f5c6c6;
+  border-radius: 99px;
+  padding: .12rem .45rem;
+}
+
+/* ── Relationship Groups in Profile ── */
+.rel-group {
+  margin-bottom: .85rem;
+}
+.rel-label {
+  font-size: .78rem;
+  color: var(--clr-muted);
+  margin-bottom: .3rem;
+  font-weight: 600;
+}
+
+/* ── Spouse Status Badge ── */
+.spouse-status {
+  font-size: .65rem;
+  padding: .1rem .35rem;
+  border-radius: 99px;
+  margin-left: .3rem;
+  font-weight: 600;
+}
+.spouse-status.married  { background: #e8f5e9; color: #2e7d32; }
+.spouse-status.divorced { background: #fce4ec; color: #c62828; }
+.spouse-status.widowed  { background: #f3e5f5; color: #6a1b9a; }
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  #sidebar { width: 260px; min-width: 260px; }
+  .profile-grid { grid-template-columns: 1fr; }
+  nav#main-nav .nav-btn span { display: none; }
+}
