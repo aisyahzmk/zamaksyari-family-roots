@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Zamaksyari Family Heritage Tree</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <!-- ═══════════════════════════════════════════
+       HEADER / NAV
+  ═══════════════════════════════════════════ -->
+  <header id="app-header">
+    <div class="brand">
+      <span class="brand-icon">🌳</span>
+      <span>Keluarga Zamaksyari</span>
+    </div>
+
+    <nav id="main-nav">
+      <button class="nav-btn active" data-view="tree">
+        <span>🌳</span> <span>Pokok Silsilah</span>
+      </button>
+      <button class="nav-btn" data-view="profile">
+        <span>👤</span> <span>Profil</span>
+      </button>
+      <button class="nav-btn" data-view="stats">
+        <span>📊</span> <span>Statistik</span>
+      </button>
+    </nav>
+  </header>
+
+  <!-- ═══════════════════════════════════════════
+       MAIN LAYOUT
+  ═══════════════════════════════════════════ -->
+  <main id="app-main">
+
+    <!-- ── Sidebar ── -->
+    <aside id="sidebar">
+      <div class="sidebar-header">
+        <h3>Senarai Ahli Keluarga</h3>
+        <input id="search-input" type="text" placeholder="🔍 Cari nama, pekerjaan…" />
+        <div class="filter-row">
+          <button class="filter-chip" data-gender="male">♂ Lelaki</button>
+          <button class="filter-chip" data-gender="female">♀ Perempuan</button>
+        </div>
+      </div>
+      <div id="member-list">
+        <!-- Populated by FamilyView -->
+      </div>
+    </aside>
+
+    <!-- ── Content Area ── -->
+    <section id="content-area">
+
+      <!-- View: Tree -->
+      <div id="view-tree" class="view active">
+        <div class="empty-state">
+          <div class="empty-icon">⏳</div>
+          <p>Loading family data…</p>
+        </div>
+      </div>
+
+      <!-- View: Profile -->
+      <div id="view-profile" class="view">
+        <div class="empty-state">
+          <div class="empty-icon">👤</div>
+          <p>Select a family member to view their profile</p>
+        </div>
+      </div>
+
+      <!-- View: Statistics -->
+      <div id="view-stats" class="view">
+        <div class="empty-state">
+          <div class="empty-icon">📊</div>
+          <p>Loading statistics…</p>
+        </div>
+      </div>
+
+    </section>
+  </main>
+
+  <!-- ═══════════════════════════════════════════
+       MODAL
+  ═══════════════════════════════════════════ -->
+  <div id="modal-overlay">
+    <div id="modal-box">
+      <div class="modal-header">
+        <h3 id="modal-title">Details</h3>
+        <button class="modal-close" id="modal-close">✕</button>
+      </div>
+      <div id="modal-body"></div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════
+       TOAST
+  ═══════════════════════════════════════════ -->
+  <div id="toast"></div>
+
+  <!-- ═══════════════════════════════════════════
+       SCRIPTS — MVC layers loaded in order
+  ═══════════════════════════════════════════ -->
+  <script src="js/model/FamilyModel.js"></script>
+  <script src="js/view/FamilyView.js"></script>
+  <script src="js/controller/FamilyController.js"></script>
+  <script>
+    // Bootstrap the application
+    document.addEventListener('DOMContentLoaded', () => {
+      const model      = new FamilyModel();
+      const view       = new FamilyView();
+      const controller = new FamilyController(model, view);
+      controller.init();
+    });
+  </script>
+</body>
+</html>
