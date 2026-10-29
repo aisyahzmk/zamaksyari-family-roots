@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -8,41 +8,41 @@
 </head>
 <body>
 
-  <!-- ═══════════════════════════════════════════
+  <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
        HEADER / NAV
-  ═══════════════════════════════════════════ -->
+  â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
   <header id="app-header">
     <div class="brand">
-      <span class="brand-icon">🌳</span>
+      <span class="brand-icon">ðŸŒ³</span>
       <span>Keluarga Zamaksyari</span>
     </div>
 
     <nav id="main-nav">
       <button class="nav-btn active" data-view="tree">
-        <span>🌳</span> <span>Pokok Silsilah</span>
+        <span>ðŸŒ³</span> <span>Family Tree</span>
       </button>
-      <button class="nav-btn" data-view="profile">
-        <span>👤</span> <span>Profil</span>
+      <button class="nav-btn" data-view="Profilee">
+        <span>ðŸ‘¤</span> <span>Profile</span>
       </button>
       <button class="nav-btn" data-view="stats">
-        <span>📊</span> <span>Statistik</span>
+        <span>ðŸ“Š</span> <span>Statistics</span>
       </button>
     </nav>
   </header>
 
-  <!-- ═══════════════════════════════════════════
+  <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
        MAIN LAYOUT
-  ═══════════════════════════════════════════ -->
+  â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
   <main id="app-main">
 
-    <!-- ── Sidebar ── -->
+    <!-- â”€â”€ Sidebar â”€â”€ -->
     <aside id="sidebar">
       <div class="sidebar-header">
-        <h3>Senarai Ahli Keluarga</h3>
-        <input id="search-input" type="text" placeholder="🔍 Cari nama, pekerjaan…" />
+        <h3>Family Members</h3>
+        <input id="search-input" type="text" placeholder="ðŸ” Search name, jobâ€¦" />
         <div class="filter-row">
-          <button class="filter-chip" data-gender="male">♂ Lelaki</button>
-          <button class="filter-chip" data-gender="female">♀ Perempuan</button>
+          <button class="filter-chip" data-gender="male">â™‚ Lelaki</button>
+          <button class="filter-chip" data-gender="female">â™€ Perempuan</button>
         </div>
       </div>
       <div id="member-list">
@@ -50,57 +50,57 @@
       </div>
     </aside>
 
-    <!-- ── Content Area ── -->
+    <!-- â”€â”€ Content Area â”€â”€ -->
     <section id="content-area">
 
       <!-- View: Tree -->
       <div id="view-tree" class="view active">
         <div class="empty-state">
-          <div class="empty-icon">⏳</div>
-          <p>Loading family data…</p>
+          <div class="empty-icon">â³</div>
+          <p>Loading family dataâ€¦</p>
         </div>
       </div>
 
-      <!-- View: Profile -->
-      <div id="view-profile" class="view">
+      <!-- View: Profilee -->
+      <div id="view-Profilee" class="view">
         <div class="empty-state">
-          <div class="empty-icon">👤</div>
-          <p>Select a family member to view their profile</p>
+          <div class="empty-icon">ðŸ‘¤</div>
+          <p>Select a family member to view their Profilee</p>
         </div>
       </div>
 
       <!-- View: Statistics -->
       <div id="view-stats" class="view">
         <div class="empty-state">
-          <div class="empty-icon">📊</div>
-          <p>Loading statistics…</p>
+          <div class="empty-icon">ðŸ“Š</div>
+          <p>Loading statisticsâ€¦</p>
         </div>
       </div>
 
     </section>
   </main>
 
-  <!-- ═══════════════════════════════════════════
+  <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
        MODAL
-  ═══════════════════════════════════════════ -->
+  â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
   <div id="modal-overlay">
     <div id="modal-box">
       <div class="modal-header">
         <h3 id="modal-title">Details</h3>
-        <button class="modal-close" id="modal-close">✕</button>
+        <button class="modal-close" id="modal-close">âœ•</button>
       </div>
       <div id="modal-body"></div>
     </div>
   </div>
 
-  <!-- ═══════════════════════════════════════════
+  <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
        TOAST
-  ═══════════════════════════════════════════ -->
+  â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
   <div id="toast"></div>
 
-  <!-- ═══════════════════════════════════════════
-       SCRIPTS — MVC layers loaded in order
-  ═══════════════════════════════════════════ -->
+  <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+       SCRIPTS â€” MVC layers loaded in order
+  â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
   <script src="js/model/FamilyModel.js"></script>
   <script src="js/view/FamilyView.js"></script>
   <script src="js/controller/FamilyController.js"></script>
@@ -115,3 +115,4 @@
   </script>
 </body>
 </html>
+

@@ -26,16 +26,16 @@ class FamilyView {
 
   // ── Avatar helper — photo if available, else initials ────────
   _avatarHTML(p, size = 'sm') {
-    const dim   = size === 'lg' ? '90px' : size === 'md' ? '52px' : '36px';
-    const fsize = size === 'lg' ? '2.2rem' : size === 'md' ? '1.2rem' : '1rem';
+    const dim   = size === 'lg' ? '96px' : size === 'md' ? '52px' : '36px';
+    const fsize = size === 'lg' ? '2.2rem' : size === 'md' ? '1.2rem' : '.9rem';
     const cls   = this._avatarCls(p);
     const dead  = !p.isAlive ? 'avatar-deceased' : '';
 
     if (p.photo) {
       return `<img src="${p.photo}" alt="${p.fullName}"
         style="width:${dim};height:${dim};border-radius:50%;object-fit:cover;object-position:center top;
-               border:2px solid var(--clr-border);flex-shrink:0;${!p.isAlive ? 'opacity:.6;filter:grayscale(50%)' : ''}"
-        onerror="this.outerHTML=\`<div class='member-avatar ${cls} ${dead}' style='width:${dim};height:${dim};font-size:${fsize}'>${this._initials(p)}</div>\`"
+               border:2px solid var(--border);flex-shrink:0;${!p.isAlive ? 'opacity:.6;filter:grayscale(50%)' : ''}"
+        onerror="this.outerHTML=\`<div class='member-avatar ${cls} ${dead}' style='width:${dim};height:${dim};font-size:${fsize};border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;flex-shrink:0'>${this._initials(p)}</div>\`"
       />`;
     }
     return `<div class="member-avatar ${cls} ${dead}"
@@ -65,6 +65,7 @@ class FamilyView {
   }
 
   _avatarCls(p) {
+    if (p.id === 'p5') return 'avatar-me';
     return p.gender === 'female' ? 'avatar-female' : 'avatar-male';
   }
 
@@ -104,7 +105,7 @@ class FamilyView {
     if (!people.length) {
       this.memberList.innerHTML = `
         <div class="empty-state" style="height:150px">
-          <div class="empty-icon">🔍</div><p>Tiada ahli dijumpai</p>
+          <div class="empty-icon">🔍</div><p>No members found</p>
         </div>`;
       return;
     }
@@ -114,11 +115,11 @@ class FamilyView {
         <div class="member-info-small">
           <div class="name">
             <strong>${p.nickname}</strong>
-            ${p.nickname === 'Ateh' || p.id === 'p5' ? '<span style="font-size:.68rem;background:#fef3c7;color:#b45309;padding:1px 5px;border-radius:99px;font-weight:700;margin-left:4px">Saya</span>' : ''}
+            ${p.id === 'p5' ? '<span style="font-size:.65rem;background:#fef3c7;color:#b45309;padding:1px 6px;border-radius:99px;font-weight:700;margin-left:4px">Me</span>' : ''}
           </div>
-          <div class="meta">${p.profession || 'Ahli Keluarga'}</div>
+          <div class="meta">${p.profession || 'Family Member'}</div>
         </div>
-        ${!p.isAlive ? '<span title="Deceased" style="color:var(--clr-deceased)">✝</span>' : ''}
+        ${!p.isAlive ? '<span title="Deceased" style="color:var(--deceased)">✝</span>' : ''}
       </div>`).join('');
   }
 
@@ -128,9 +129,9 @@ class FamilyView {
     const el = this.views.tree;
     el.innerHTML = `
       <div class="tree-title">
-        🌳 Pokok Silsilah Keluarga Zamaksyari
-        <span style="font-size:.82rem;font-weight:400;color:var(--clr-muted);margin-left:auto">
-          💡 Klik mana-mana kad untuk mengetahui nama sebenar & profil penuh
+        🌳 Zamaksyari Family Heritage Tree
+        <span style="font-size:.8rem;font-weight:400;color:var(--muted-fg);margin-left:auto">
+          💡 Click any card to reveal full name &amp; profile
         </span>
       </div>`;
 
@@ -155,7 +156,7 @@ class FamilyView {
           ${this._personCardHTML(father, selectedId)}
           <div class="marriage-bridge">
             <div class="marriage-line"></div>
-            <div class="marriage-pill">💍 Berkahwin</div>
+            <div class="marriage-pill">💍 Married</div>
           </div>
           ${this._personCardHTML(mother, selectedId)}
         `;
@@ -171,7 +172,7 @@ class FamilyView {
       trunk.className = 'tree-trunk';
       treeWrapper.appendChild(trunk);
 
-      // ── Children Level (Abang, Angah, Ateh, Kakcik, Iwan, Adik) ──
+      // ── Children Level ──
       const childrenContainer = document.createElement('div');
       childrenContainer.className = 'tree-children-container';
 
@@ -205,22 +206,23 @@ class FamilyView {
 
   _personCardHTML(p, selectedId) {
     const sel  = p.id === selectedId ? 'selected' : '';
-    const dec  = !p.isAlive ? 'deceased' : '';
-    const isMe = p.nickname === 'Ateh' || p.id === 'p5';
+    const isMe = p.id === 'p5';
+    const avatarCls = isMe ? 'avatar-me' : (p.gender === 'female' ? 'avatar-female' : 'avatar-male');
 
     return `
-      <div class="person-card ${sel} ${dec}" data-id="${p.id}" title="Tekan untuk ketahui profil penuh & nama sebenar">
-        ${isMe ? '<span class="card-badge-me">✨ Saya</span>' : ''}
-        ${!p.isAlive ? '<span class="deceased-stamp">✝</span>' : ''}
-        <div class="card-avatar ${this._avatarCls(p)}" style="overflow:hidden;padding:0">
+      <div class="person-card ${sel}" data-id="${p.id}" title="Click to reveal full name & profile">
+        ${isMe ? '<span class="card-badge-me">✨ Me</span>' : ''}
+        ${!p.isAlive ? '<span style="position:absolute;top:6px;right:8px;font-size:.6rem;color:var(--deceased)">✝</span>' : ''}
+        <div class="card-avatar ${avatarCls}">
           ${p.photo
-            ? `<img src="${p.photo}" style="width:100%;height:100%;object-fit:cover;object-position:center top;border-radius:50%"
+            ? `<img src="${p.photo}" alt="${p.nickname}"
+                style="width:100%;height:100%;object-fit:cover;object-position:center top"
                 onerror="this.style.display='none';this.parentElement.textContent='${this._initials(p)}'">`
             : this._initials(p)}
         </div>
         <div class="card-nickname">${p.nickname}</div>
         <div class="card-role">${p.profession || '—'}</div>
-        <div class="card-hint">Lihat Profil ➔</div>
+        <div class="card-hint">View Profile ➔</div>
       </div>`;
   }
 
@@ -228,116 +230,119 @@ class FamilyView {
 
   renderProfile(person, father, mother, spouses, children, siblings) {
     const isFemale = person.gender === 'female';
+    const isMe     = person.id === 'p5';
 
     const relChips = (list, icon) => {
       if (!list.length)
-        return `<em style="font-size:.8rem;color:var(--clr-muted)">Tiada rekod</em>`;
+        return `<em style="font-size:.8rem;color:var(--muted-fg)">—</em>`;
       return list.map(p => `
         <button class="relation-chip" data-id="${p.id}">
-          ${icon} <strong>${p.nickname}</strong> <span style="font-size:.78rem;color:var(--clr-muted)">(${p.fullName})</span>
+          ${icon} <strong>${p.nickname}</strong> <span style="font-size:.78rem;color:var(--muted-fg)">(${p.fullName})</span>
           ${p.marriageStatus
             ? `<span class="spouse-status ${p.marriageStatus}">${this._statusBadge(p.marriageStatus).icon} ${p.marriageStatus}</span>`
             : ''}
         </button>`).join('');
     };
 
-    const parents = [father, mother].filter(Boolean);
+    const bannerCls = isMe ? 'me' : (isFemale ? 'female' : '');
 
     this.views.profile.innerHTML = `
       <div class="profile-card">
-        <div class="profile-banner ${isFemale ? 'female' : ''}"></div>
+        <div class="profile-banner ${bannerCls}"></div>
         <div class="profile-body">
-          <div class="profile-avatar-lg ${this._avatarCls(person)}" style="overflow:hidden;padding:0">
+          <div class="profile-avatar-lg ${isMe ? 'avatar-me' : (isFemale ? 'avatar-female' : 'avatar-male')}">
             ${person.photo
-              ? `<img src="${person.photo}" style="width:100%;height:100%;object-fit:cover;object-position:center top;border-radius:50%"
+              ? `<img src="${person.photo}" alt="${person.fullName}"
+                  style="width:100%;height:100%;object-fit:cover;object-position:center top"
                   onerror="this.style.display='none';this.parentElement.textContent='${this._initials(person)}'">`
               : this._initials(person)}
           </div>
           <div class="profile-header-info">
-            <span class="profile-nickname-badge">Nama Panggilan: <strong>${person.nickname}</strong></span>
+            <span class="profile-nickname-badge">Nickname: <strong>${person.nickname}</strong></span>
             <h2>${person.fullName}</h2>
             <p class="subtitle">
-              ${person.profession || 'Pekerjaan tidak dinyatakan'}
-              ${!person.isAlive
-                ? ' &nbsp;·&nbsp; <strong style="color:var(--clr-deceased)">Meninggal Dunia</strong>'
-                : ' &nbsp;·&nbsp; <span style="color:var(--clr-accent2)">● Hidup</span>'}
+              ${person.profession || 'Profession not stated'}
+              &nbsp;·&nbsp;
+              ${person.isAlive
+                ? '<span class="living-dot">● Living</span>'
+                : '<strong class="deceased-text">Passed Away</strong>'}
             </p>
           </div>
 
           <div class="profile-grid">
-            <!-- Maklumat Peribadi -->
+            <!-- Personal Info -->
             <div class="info-section">
-              <h4>Maklumat Peribadi</h4>
+              <h4>Personal Info</h4>
               <div class="info-row">
-                <span class="label">Nama Penuh</span>
-                <span class="value" style="font-weight:700;color:var(--clr-primary)">${person.fullName}</span>
+                <span class="label">Full Name</span>
+                <span class="value" style="font-weight:700;color:var(--primary)">${person.fullName}</span>
               </div>
               <div class="info-row">
-                <span class="label">Nama Panggilan</span>
+                <span class="label">Nickname</span>
                 <span class="value">${person.nickname}</span>
               </div>
               <div class="info-row">
-                <span class="label">Tarikh Lahir</span>
+                <span class="label">Date of Birth</span>
                 <span class="value">${this._formatDob(person.dob)}</span>
               </div>
               ${!person.isAlive ? `
               <div class="info-row">
-                <span class="label">Tarikh Kematian</span>
+                <span class="label">Date of Death</span>
                 <span class="value">${this._formatDob(person.dateOfDeath)}</span>
               </div>` : ''}
               <div class="info-row">
-                <span class="label">Jantina</span>
-                <span class="value">${person.gender === 'female' ? '♀ Perempuan' : '♂ Lelaki'}</span>
+                <span class="label">Gender</span>
+                <span class="value">${person.gender === 'female' ? '♀ Female' : '♂ Male'}</span>
               </div>
               <div class="info-row">
-                <span class="label">Pekerjaan</span>
+                <span class="label">Job / Role</span>
                 <span class="value">${person.profession || '—'}</span>
               </div>
             </div>
 
-            <!-- Hubungan Keluarga -->
+            <!-- Family Connections -->
             <div class="info-section">
-              <h4>Hubungan Keluarga</h4>
+              <h4>Family Connections</h4>
 
               <div class="rel-group">
-                <div class="rel-label">👴 Bapa</div>
+                <div class="rel-label">👴 Father</div>
                 <div class="relation-chips">
                   ${father
-                    ? `<button class="relation-chip" data-id="${father.id}">👤 <strong>${father.nickname}</strong> <span style="font-size:.78rem;color:var(--clr-muted)">(${father.fullName})</span></button>`
-                    : '<em style="font-size:.8rem;color:var(--clr-muted)">Tiada rekod</em>'}
+                    ? `<button class="relation-chip" data-id="${father.id}">👤 <strong>${father.nickname}</strong> <span style="font-size:.78rem;color:var(--muted-fg)">(${father.fullName})</span></button>`
+                    : '<em style="font-size:.8rem;color:var(--muted-fg)">—</em>'}
                 </div>
               </div>
 
               <div class="rel-group">
-                <div class="rel-label">👩 Ibu</div>
+                <div class="rel-label">👩 Mother</div>
                 <div class="relation-chips">
                   ${mother
-                    ? `<button class="relation-chip" data-id="${mother.id}">👤 <strong>${mother.nickname}</strong> <span style="font-size:.78rem;color:var(--clr-muted)">(${mother.fullName})</span></button>`
-                    : '<em style="font-size:.8rem;color:var(--clr-muted)">Tiada rekod</em>'}
+                    ? `<button class="relation-chip" data-id="${mother.id}">👤 <strong>${mother.nickname}</strong> <span style="font-size:.78rem;color:var(--muted-fg)">(${mother.fullName})</span></button>`
+                    : '<em style="font-size:.8rem;color:var(--muted-fg)">—</em>'}
                 </div>
               </div>
 
               <div class="rel-group">
-                <div class="rel-label">💍 Pasangan</div>
+                <div class="rel-label">💍 Spouse</div>
                 <div class="relation-chips">${relChips(spouses, '💑')}</div>
               </div>
 
               <div class="rel-group">
-                <div class="rel-label">👶 Anak-anak</div>
+                <div class="rel-label">👶 Children</div>
                 <div class="relation-chips">${relChips(children, '🧒')}</div>
               </div>
 
               <div class="rel-group">
-                <div class="rel-label">👫 Adik-beradik</div>
+                <div class="rel-label">👫 Siblings</div>
                 <div class="relation-chips">${relChips(siblings, '🤝')}</div>
               </div>
             </div>
           </div>
 
-          ${person.bio ? `<div class="bio-section">"${person.bio}"</div>` : ''}
+          ${person.bio ? `<blockquote class="bio-section">"${person.bio}"</blockquote>` : ''}
 
           <div class="profile-nav-btns">
-            <button class="btn btn-outline" id="btn-back-tree">← Kembali ke Pokok Silsilah</button>
+            <button class="btn btn-outline" id="btn-back-tree">← Back to Family Tree</button>
           </div>
         </div>
       </div>`;
@@ -353,45 +358,45 @@ class FamilyView {
     const genEntries = Object.entries(stats.genCounts).sort((a, b) => +a[0] - +b[0]);
     const maxGen = Math.max(...genEntries.map(e => e[1]), 1);
 
-    const bar = (label, count, max, color = '') => `
+    const bar = (label, count, max, alt = false) => `
       <div class="bar-row">
         <div class="bar-label">${label}</div>
         <div class="bar-track">
-          <div class="bar-fill" style="width:${Math.round(count / max * 100)}%;${color}"></div>
+          <div class="bar-fill${alt ? ' alt' : ''}" style="width:${Math.round(count / max * 100)}%"></div>
         </div>
         <div class="bar-count">${count}</div>
       </div>`;
 
     this.views.stats.innerHTML = `
-      <div class="stats-title">📊 Statistik Keluarga Zamaksyari</div>
+      <div class="stats-title">📊 Zamaksyari Family Statistics</div>
 
       <div class="stats-grid">
         <div class="stat-card"><div class="stat-icon">👥</div>
-          <div class="stat-value">${stats.total}</div><div class="stat-label">Jumlah Ahli</div></div>
+          <div class="stat-value">${stats.total}</div><div class="stat-label">Total Members</div></div>
         <div class="stat-card"><div class="stat-icon">♂</div>
-          <div class="stat-value">${stats.male}</div><div class="stat-label">Lelaki</div></div>
+          <div class="stat-value">${stats.male}</div><div class="stat-label">Male</div></div>
         <div class="stat-card"><div class="stat-icon">♀</div>
-          <div class="stat-value">${stats.female}</div><div class="stat-label">Perempuan</div></div>
+          <div class="stat-value">${stats.female}</div><div class="stat-label">Female</div></div>
         <div class="stat-card"><div class="stat-icon">💚</div>
-          <div class="stat-value">${stats.living}</div><div class="stat-label">Hidup</div></div>
+          <div class="stat-value">${stats.living}</div><div class="stat-label">Living</div></div>
         <div class="stat-card"><div class="stat-icon">🕊️</div>
-          <div class="stat-value">${stats.deceased}</div><div class="stat-label">Meninggal</div></div>
+          <div class="stat-value">${stats.deceased}</div><div class="stat-label">Passed Away</div></div>
         <div class="stat-card"><div class="stat-icon">🌱</div>
-          <div class="stat-value">${stats.generations}</div><div class="stat-label">Generasi</div></div>
+          <div class="stat-value">${stats.generations}</div><div class="stat-label">Generations</div></div>
       </div>
 
       <div class="chart-section">
-        <h4>Peranan / Pekerjaan</h4>
+        <h4>Jobs / Roles</h4>
         <div class="bar-chart">
-          ${topProf.map(([p, c]) => bar(p, c, maxProf)).join('')}
+          ${topProf.map(([p, c]) => bar(p, c, maxProf, false)).join('')}
         </div>
       </div>
 
       <div class="chart-section">
-        <h4>Bilangan Ahli Mengikut Generasi</h4>
+        <h4>Members by Generation</h4>
         <div class="bar-chart">
           ${genEntries.map(([g, c]) =>
-            bar(`Generasi ${+g + 1} (${+g === 0 ? 'Ibu Bapa' : 'Anak-anak'})`, c, maxGen, 'background:linear-gradient(90deg,var(--clr-accent2),var(--clr-accent))')).join('')}
+            bar(`Generation ${+g + 1} (${+g === 0 ? 'Parents' : 'Children'})`, c, maxGen, true)).join('')}
         </div>
       </div>`;
   }
