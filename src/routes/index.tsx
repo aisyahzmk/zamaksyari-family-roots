@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Avatar } from "@/components/family/Avatar";
+import { PanZoom } from "@/components/family/PanZoom";
 import { FamilyModel, RAW_PEOPLE, ME_ID, formatDob, type Gender, type Person } from "@/lib/family";
 
 export const Route = createFileRoute("/")({
@@ -21,14 +22,19 @@ export const Route = createFileRoute("/")({
 
 type View = "tree" | "profile" | "stats";
 const model = new FamilyModel(RAW_PEOPLE);
+const GENS = model.getGenerations();
+const genName = (g: number) => (g === 1 ? "Parents" : g === 2 ? "Children" : `Gen ${g}`);
 
 function FamilyApp() {
   const [view, setView] = useState<View>("tree");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const [gender, setGender] = useState<Gender | null>(null);
+  const [gen, setGen] = useState<number | null>(null);
+  const [sideOpen, setSideOpen] = useState(false);
 
-  const list = useMemo(() => model.search(query, gender), [query, gender]);
+  const list = useMemo(() => model.search(query, gender, gen), [query, gender, gen]);
+  const visible = useMemo(() => new Set(list.map((p) => p.id)), [list]);
   const selected = model.getById(selectedId);
 
   const select = (id: string) => {
@@ -36,6 +42,7 @@ function FamilyApp() {
     if (!p) return;
     setSelectedId(id);
     setView("profile");
+    if (window.innerWidth < 768) setSideOpen(false);
     toast(`👤 ${p.nickname}: ${p.fullName}`);
   };
 
@@ -43,59 +50,86 @@ function FamilyApp() {
     { key: "tree", icon: "🌳", label: "Family Tree" },
     { key: "stats", icon: "📊", label: "Statistics" },
   ];
+  const pill =
+    "rounded-lg border border-primary-foreground/25 bg-primary-foreground/10 text-sm font-medium transition hover:bg-primary-foreground/25";
+  const pillOn = "border-primary-foreground/60 bg-primary-foreground/30";
 
   return (
-    <div className="flex h-screen flex-col">
-      <header className="bg-header sticky top-0 z-10 flex h-16 shrink-0 items-center justify-between px-4 text-primary-foreground shadow-lift md:px-8">
-        <div className="flex items-center gap-3 font-display text-xl font-bold">
-          <span className="text-2xl">🌳</span>
-          <span className="hidden sm:inline">Zamaksyari Family</span>
+    <div className="flex h-dvh flex-col overflow-hidden">
+      <header className="bg-header z-30 flex shrink-0 flex-wrap items-center gap-2 px-3 py-2 text-primary-foreground shadow-lift md:px-5">
+        <button
+          aria-label={sideOpen ? "Close member list" : "Open member list"}
+          onClick={() => setSideOpen((o) => !o)}
+          className={cn(pill, "flex h-9 w-9 items-center justify-center text-lg", sideOpen && pillOn)}
+        >
+          {sideOpen ? "✕" : "☰"}
+        </button>
+        <div className="mr-2 flex items-center gap-2 font-display text-lg font-bold">
+          <span className="text-xl">🌳</span>
+          <span className="hidden lg:inline">Zamaksyari Family</span>
         </div>
-        <nav className="flex gap-2">
+        <nav className="flex gap-1.5">
           {navs.map((n) => (
             <button
               key={n.key}
               onClick={() => setView(n.key)}
-              className={cn(
-                "flex items-center gap-1.5 rounded-lg border border-primary-foreground/25 bg-primary-foreground/10 px-3 py-1.5 text-sm font-medium transition hover:bg-primary-foreground/25",
-                view === n.key && "border-primary-foreground/50 bg-primary-foreground/25",
-              )}
+              className={cn(pill, "flex h-9 items-center gap-1.5 px-3", view === n.key && pillOn)}
             >
               <span>{n.icon}</span>
-              <span className="hidden md:inline">{n.label}</span>
+              <span className="hidden sm:inline">{n.label}</span>
             </button>
           ))}
         </nav>
+
+        <div className="ml-auto flex w-full flex-wrap items-center gap-1.5 md:w-auto">
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="🔍 Search name, job…"
+            aria-label="Search"
+            className="h-9 min-w-0 flex-1 rounded-lg border border-primary-foreground/25 bg-primary-foreground/15 px-3 text-sm text-primary-foreground outline-none placeholder:text-primary-foreground/70 focus:border-primary-foreground/70 md:w-52 md:flex-none"
+          />
+          {(["male", "female"] as const).map((g) => (
+            <button
+              key={g}
+              onClick={() => setGender(gender === g ? null : g)}
+              className={cn(pill, "h-9 px-3", gender === g && pillOn)}
+            >
+              {g === "male" ? "♂ Male" : "♀ Female"}
+            </button>
+          ))}
+          <select
+            value={gen ?? ""}
+            onChange={(e) => setGen(e.target.value ? +e.target.value : null)}
+            aria-label="Generation"
+            className={cn(pill, "h-9 cursor-pointer px-2 text-primary-foreground [&>option]:text-foreground", gen && pillOn)}
+          >
+            <option value="">All Generations</option>
+            {GENS.map((g) => (
+              <option key={g} value={g}>
+                Gen {g} · {genName(g)}
+              </option>
+            ))}
+          </select>
+        </div>
       </header>
 
-      <main className="flex min-h-0 flex-1">
-        <aside className="hidden w-72 shrink-0 flex-col border-r border-border bg-card md:flex">
-          <div className="border-b border-border px-5 pb-3 pt-4">
-            <h3 className="mb-2 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-              Family Members
+      <main className="relative flex min-h-0 flex-1">
+        {sideOpen && (
+          <div className="absolute inset-0 z-10 bg-foreground/30 md:hidden" onClick={() => setSideOpen(false)} />
+        )}
+        <aside
+          className={cn(
+            "absolute inset-y-0 left-0 z-20 flex w-72 flex-col overflow-hidden border-r border-border bg-card shadow-lift transition-all duration-300 md:relative md:shadow-none",
+            sideOpen ? "translate-x-0 md:w-72" : "-translate-x-full md:w-0 md:border-r-0",
+          )}
+        >
+          <div className="w-72 border-b border-border px-5 py-3">
+            <h3 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+              Family Members <span className="text-primary">({list.length})</span>
             </h3>
-            <input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="🔍 Search name, job…"
-              className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm outline-none focus:border-primary"
-            />
-            <div className="mt-2 flex gap-1.5">
-              {(["male", "female"] as const).map((g) => (
-                <button
-                  key={g}
-                  onClick={() => setGender(gender === g ? null : g)}
-                  className={cn(
-                    "flex-1 rounded-full border border-border px-2 py-1 text-xs text-muted-foreground transition hover:bg-background",
-                    gender === g && "border-primary bg-primary text-primary-foreground hover:bg-primary",
-                  )}
-                >
-                  {g === "male" ? "♂ Male" : "♀ Female"}
-                </button>
-              ))}
-            </div>
           </div>
-          <div className="flex-1 overflow-y-auto p-2">
+          <div className="w-72 flex-1 overflow-y-auto p-2">
             {list.length === 0 ? (
               <Empty icon="🔍" text="No members found" />
             ) : (
@@ -116,6 +150,9 @@ function FamilyApp() {
                     </div>
                     <div className="truncate text-xs text-muted-foreground">{p.profession || "Family Member"}</div>
                   </div>
+                  <span className="rounded-full bg-secondary px-1.5 text-[0.65rem] font-bold text-primary-light">
+                    Gen {p.generation}
+                  </span>
                   {!p.isAlive && <span className="text-deceased">✝</span>}
                 </button>
               ))
@@ -123,8 +160,8 @@ function FamilyApp() {
           </div>
         </aside>
 
-        <section className="min-w-0 flex-1 overflow-auto">
-          {view === "tree" && <TreeView selectedId={selectedId} onSelect={select} />}
+        <section className={cn("min-w-0 flex-1", view === "tree" ? "overflow-hidden" : "overflow-y-auto")}>
+          {view === "tree" && <TreeView selectedId={selectedId} onSelect={select} visible={visible} />}
           {view === "profile" &&
             (selected ? (
               <ProfileView person={selected} onSelect={select} onBack={() => setView("tree")} />
@@ -187,28 +224,39 @@ function PersonCard({ p, selected, onSelect }: { p: Person; selected: boolean; o
   );
 }
 
-function TreeView({ selectedId, onSelect }: { selectedId: string | null; onSelect: (id: string) => void }) {
+function TreeView({
+  selectedId,
+  onSelect,
+  visible,
+}: {
+  selectedId: string | null;
+  onSelect: (id: string) => void;
+  visible: Set<string>;
+}) {
   const groups = model.getGenerationGroups();
   const parents = groups.find((g) => g.gen === 0)?.people ?? [];
   const children = groups.find((g) => g.gen === 1)?.people ?? [];
   const father = parents.find((p) => p.gender === "male");
   const mother = parents.find((p) => p.gender === "female");
+  const card = (p: Person) => (
+    <div className={cn("transition-opacity duration-300", !visible.has(p.id) && "pointer-events-none opacity-20 grayscale")}>
+      <PersonCard p={p} selected={p.id === selectedId} onSelect={onSelect} />
+    </div>
+  );
 
   return (
-    <div className="p-4 md:p-8">
-      <SectionTitle aside="💡 Click any card to see the real name & full profile">
-        🌳 Zamaksyari Family Tree
-      </SectionTitle>
-      <div className="mx-auto flex w-max flex-col items-center px-4 pb-12 pt-4 max-xl:[zoom:0.8] max-sm:[zoom:0.5]">
+    <PanZoom>
+      <div className="flex w-max flex-col items-center px-8 pb-8 pt-2">
+        <GenLabel>Gen 1 · Parents</GenLabel>
         <div className="flex items-center gap-12">
-          {father && <PersonCard p={father} selected={father.id === selectedId} onSelect={onSelect} />}
+          {father && card(father)}
           <div className="relative flex items-center">
             <div className="tree-line absolute -left-12 -right-12 top-1/2 h-[3px]" />
             <div className="relative rounded-full border-2 border-primary-light bg-card px-3 py-1 text-xs font-bold text-primary shadow-soft">
               💍 Married
             </div>
           </div>
-          {mother && <PersonCard p={mother} selected={mother.id === selectedId} onSelect={onSelect} />}
+          {mother && card(mother)}
         </div>
         <div className="tree-line h-10 w-[3px]" />
         <div className="relative flex items-start justify-center pt-6 [--zig:13rem]">
@@ -227,12 +275,21 @@ function TreeView({ selectedId, onSelect }: { selectedId: string | null; onSelec
                   className="tree-line absolute -top-6 w-[3px]"
                   style={{ height: low ? "calc(1.5rem + var(--zig))" : "1.5rem" }}
                 />
-                <PersonCard p={c} selected={c.id === selectedId} onSelect={onSelect} />
+                {card(c)}
               </div>
             );
           })}
         </div>
+        <GenLabel>Gen 2 · Children</GenLabel>
       </div>
+    </PanZoom>
+  );
+}
+
+function GenLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="my-3 rounded-full bg-secondary px-3 py-0.5 text-[0.7rem] font-bold uppercase tracking-widest text-primary-light">
+      {children}
     </div>
   );
 }
