@@ -375,6 +375,7 @@ function ProfileView({ person, onSelect, onBack }: { person: Person; onSelect: (
               {!person.isAlive && <InfoRow label="Date of Death">{formatDob(person.dateOfDeath)}</InfoRow>}
               <InfoRow label="Gender">{person.gender === "female" ? "♀ Female" : "♂ Male"}</InfoRow>
               <InfoRow label="Job">{person.profession || "—"}</InfoRow>
+              <InfoRow label="Generation">Gen {person.generation} · {genName(person.generation)}</InfoRow>
             </div>
             <div className="rounded-xl border border-border bg-background p-5">
               <h4 className="mb-3 text-xs font-bold uppercase tracking-widest text-primary-light">Family Connections</h4>
