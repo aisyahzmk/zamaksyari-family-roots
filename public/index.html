@@ -3,77 +3,120 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Zamaksyari Family Heritage Tree</title>
+  <title>Zamaksyari Family Heritage Tree — ITT588 Lab 4</title>
   <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
 
   <!-- ═══════════════════════════════════════════
-       HEADER / NAV
+       HEADER (Earthy Minimal Neobrutalism Top Bar)
   ═══════════════════════════════════════════ -->
   <header id="app-header">
-    <div class="brand">
-      <span class="brand-icon">🌳</span>
-      <span>Keluarga Zamaksyari</span>
+    <div class="header-left">
+      <div class="brand">
+        <span class="brand-icon">🌳</span>
+        <span class="brand-name">Zamaksyari Family Tree</span>
+      </div>
     </div>
 
+    <!-- Dropdown Filters & Search in Top Bar -->
+    <div class="header-filters">
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input id="top-search" type="text" placeholder="Search name, job, bio..." autocomplete="off" />
+        <button id="btn-clear-search" class="btn-clear" title="Clear search">✕</button>
+      </div>
+
+      <!-- Generation Dropdown Filter -->
+      <div class="select-wrapper">
+        <select id="top-filter-gen" class="neo-select" title="Filter by generation">
+          <option value="all">All Generations</option>
+          <option value="0">Generation 1 (Parents)</option>
+          <option value="1">Generation 2 (Children)</option>
+        </select>
+      </div>
+
+      <!-- Gender Dropdown Filter -->
+      <div class="select-wrapper">
+        <select id="top-filter-gender" class="neo-select" title="Filter by gender">
+          <option value="all">All Genders</option>
+          <option value="male">♂ Male</option>
+          <option value="female">♀ Female</option>
+        </select>
+      </div>
+
+      <button id="btn-top-reset" class="btn-neo-reset" title="Reset all filters">↺ Reset</button>
+    </div>
+
+    <!-- Navigation Tabs -->
     <nav id="main-nav">
-      <button class="nav-btn active" data-view="tree">
-        <span>🌳</span> <span>Pokok Silsilah</span>
+      <button class="nav-btn active" data-view="tree" title="View interactive family tree">
+        <span>🌳</span> <span class="nav-text">Tree</span>
       </button>
-      <button class="nav-btn" data-view="profile">
-        <span>👤</span> <span>Profil</span>
+      <button class="nav-btn" data-view="directory" title="View family members directory">
+        <span>👥</span> <span class="nav-text">Directory</span>
       </button>
-      <button class="nav-btn" data-view="stats">
-        <span>📊</span> <span>Statistik</span>
+      <button class="nav-btn" data-view="stats" title="View demographic statistics">
+        <span>📊</span> <span class="nav-text">Statistics</span>
       </button>
     </nav>
   </header>
 
   <!-- ═══════════════════════════════════════════
-       MAIN LAYOUT
+       MAIN CONTENT (No Vertical Page Scroll on Tree)
   ═══════════════════════════════════════════ -->
   <main id="app-main">
-
-    <!-- ── Sidebar ── -->
-    <aside id="sidebar">
-      <div class="sidebar-header">
-        <h3>Senarai Ahli Keluarga</h3>
-        <input id="search-input" type="text" placeholder="🔍 Cari nama, pekerjaan…" />
-        <div class="filter-row">
-          <button class="filter-chip" data-gender="male">♂ Lelaki</button>
-          <button class="filter-chip" data-gender="female">♀ Perempuan</button>
-        </div>
-      </div>
-      <div id="member-list">
-        <!-- Populated by FamilyView -->
-      </div>
-    </aside>
-
-    <!-- ── Content Area ── -->
     <section id="content-area">
 
-      <!-- View: Tree -->
+      <!-- View: Tree (Interactive Pan & Zoom Canvas) -->
       <div id="view-tree" class="view active">
-        <div class="empty-state">
-          <div class="empty-icon">⏳</div>
-          <p>Loading family data…</p>
+        <div id="tree-canvas-viewport" class="tree-canvas-viewport">
+          <!-- Canvas containing the tree hierarchy -->
+          <div id="tree-canvas" class="tree-canvas">
+            <!-- Rendered dynamically by FamilyView -->
+          </div>
+
+          <!-- Small Discrete Floating Zoom Controls at Bottom Right -->
+          <div class="neo-floating-zoom" title="Scroll mouse wheel to zoom, click & drag to pan">
+            <button id="btn-zoom-out" class="btn-zoom-mini" title="Zoom Out">−</button>
+            <span id="zoom-level-text" class="zoom-mini-text">100%</span>
+            <button id="btn-zoom-in" class="btn-zoom-mini" title="Zoom In">+</button>
+            <button id="btn-zoom-reset" class="btn-zoom-mini btn-reset-mini" title="Reset View">↺ Reset</button>
+          </div>
+
+          <!-- Discrete drag hint badge -->
+          <div class="neo-canvas-hint">
+            <span>🖱️ Drag to pan · Scroll to zoom</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- View: Directory & Filter -->
+      <div id="view-directory" class="view">
+        <div class="view-header-wrap">
+          <h1 class="neo-title">👥 Family Members Directory</h1>
+          <p class="neo-subtitle">Complete list of family members with biographical details and kinship ties.</p>
+        </div>
+        <div id="directory-content">
+          <!-- Rendered by FamilyView -->
         </div>
       </div>
 
       <!-- View: Profile -->
       <div id="view-profile" class="view">
-        <div class="empty-state">
-          <div class="empty-icon">👤</div>
-          <p>Select a family member to view their profile</p>
+        <div id="profile-content">
+          <!-- Rendered by FamilyView -->
         </div>
       </div>
 
       <!-- View: Statistics -->
       <div id="view-stats" class="view">
-        <div class="empty-state">
-          <div class="empty-icon">📊</div>
-          <p>Loading statistics…</p>
+        <div class="view-header-wrap">
+          <h1 class="neo-title">📊 Family Analytics & Statistics</h1>
+          <p class="neo-subtitle">Demographic distributions computed dynamically from the heritage JSON dataset.</p>
+        </div>
+        <div id="stats-content">
+          <!-- Rendered by FamilyView -->
         </div>
       </div>
 
@@ -81,22 +124,20 @@
   </main>
 
   <!-- ═══════════════════════════════════════════
-       MODAL
-  ═══════════════════════════════════════════ -->
-  <div id="modal-overlay">
-    <div id="modal-box">
-      <div class="modal-header">
-        <h3 id="modal-title">Details</h3>
-        <button class="modal-close" id="modal-close">✕</button>
-      </div>
-      <div id="modal-body"></div>
-    </div>
-  </div>
-
-  <!-- ═══════════════════════════════════════════
-       TOAST
+       TOAST NOTIFICATION
   ═══════════════════════════════════════════ -->
   <div id="toast"></div>
+
+  <!-- ═══════════════════════════════════════════
+       FOOTER
+  ═══════════════════════════════════════════ -->
+  <footer id="app-footer">
+    <span>📂 Data dynamically loaded from <code>data/people.json</code> via JavaScript Fetch API</span>
+    <span class="footer-dot">·</span>
+    <span>MVC Architecture: <strong>FamilyModel</strong> · <strong>FamilyView</strong> · <strong>FamilyController</strong></span>
+    <span class="footer-dot">·</span>
+    <span>ITT588 Lab Work 4 © Siti Aisyah binti Zamaksyari</span>
+  </footer>
 
   <!-- ═══════════════════════════════════════════
        SCRIPTS — MVC layers loaded in order
@@ -105,7 +146,7 @@
   <script src="js/view/FamilyView.js"></script>
   <script src="js/controller/FamilyController.js"></script>
   <script>
-    // Bootstrap the application
+    // Bootstrap MVC Application
     document.addEventListener('DOMContentLoaded', () => {
       const model      = new FamilyModel();
       const view       = new FamilyView();

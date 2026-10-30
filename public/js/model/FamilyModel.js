@@ -2,11 +2,11 @@
  * MODEL — FamilyModel
  * ---------------------------------------------------------
  * Parses the geoseiden-compatible people.json format:
- *   { id, firstName, lastName, gender, dob, dateOfDeath,
- *     profession, bloodGroup, fatherId, motherId,
+ *   { id, firstName, lastName, nickname, gender, dob, dateOfDeath,
+ *     profession, photo, fatherId, motherId,
  *     spouses: [{id, status}], bio }
  *
- * All relationship lookups are computed from fatherId /
+ * All relationship lookups are computed dynamically from fatherId /
  * motherId / spouses arrays — no pre-built children arrays
  * needed in the JSON.
  * ---------------------------------------------------------
@@ -18,7 +18,7 @@ class FamilyModel {
   }
 
   // ── Data Loading ──────────────────────────────────────────────
-  async load(url) {
+  async load(url = './data/people.json') {
     const res = await fetch(url);
     if (!res.ok) throw new Error(`Failed to load: ${res.statusText}`);
     const raw = await res.json();
@@ -116,7 +116,7 @@ class FamilyModel {
   // ── Generation Mapping ────────────────────────────────────────
   /**
    * BFS from roots (no parents) outward.
-   * Returns Map<id, genNumber>.  Roots = 0.
+   * Returns Map<id, genNumber>. Roots = 0.
    */
   computeGenerations() {
     const genMap = new Map();
@@ -156,27 +156,39 @@ class FamilyModel {
   }
 
   // ── Search & Filter ───────────────────────────────────────────
-  search(query) {
-    const q = query.toLowerCase().trim();
-    if (!q) return this.getAll();
-    return this._people.filter(p =>
-      p.nickname.toLowerCase().includes(q) ||
-      p.fullName.toLowerCase().includes(q) ||
-      p.profession.toLowerCase().includes(q)
-    );
-  }
+  /**
+   * Multi-attribute search and filtering:
+   * Query keyword, gender, and generation
+   */
+  search(query = '', gender = 'all', gen = 'all') {
+    const q = (query || '').toLowerCase().trim();
+    const genMap = this.computeGenerations();
 
-  filterByGender(gender) {
-    return gender ? this._people.filter(p => p.gender === gender) : this.getAll();
-  }
+    return this._people.filter(p => {
+      // Gender filter
+      if (gender && gender !== 'all' && p.gender !== gender) return false;
 
-  filterAlive() { return this._people.filter(p => p.isAlive); }
+      // Generation filter
+      if (gen !== 'all' && gen !== null && gen !== undefined && gen !== '') {
+        const pGen = genMap.get(p.id) ?? 0;
+        if (pGen !== Number(gen)) return false;
+      }
+
+      // Keyword query
+      if (!q) return true;
+      return (
+        p.nickname.toLowerCase().includes(q) ||
+        p.fullName.toLowerCase().includes(q) ||
+        p.profession.toLowerCase().includes(q) ||
+        (p.bio && p.bio.toLowerCase().includes(q))
+      );
+    });
+  }
 
   // ── Statistics ────────────────────────────────────────────────
   getStats() {
-    const all    = this.getAll();
-    const genMap = this.computeGenerations();
-
+    const all         = this.getAll();
+    const genMap      = this.computeGenerations();
     const professions = {};
     const genCounts   = {};
 

@@ -2,23 +2,26 @@
  * VIEW — FamilyView
  * ---------------------------------------------------------
  * Pure DOM layer. Receives plain data objects from the
- * Controller and renders HTML. Has zero business logic.
+ * Controller and renders HTML. Contains zero business logic.
+ * Earthy Minimal Neobrutalism design style with English UI.
  * ---------------------------------------------------------
  */
 class FamilyView {
   constructor() {
-    this.memberList   = document.getElementById('member-list');
-    this.searchInput  = document.getElementById('search-input');
-    this.filterChips  = document.querySelectorAll('.filter-chip');
-    this.navBtns      = document.querySelectorAll('.nav-btn');
-    this.toast        = document.getElementById('toast');
-    this.modalOverlay = document.getElementById('modal-overlay');
-    this.modalClose   = document.getElementById('modal-close');
+    this.navBtns        = document.querySelectorAll('.nav-btn');
+    this.toast          = document.getElementById('toast');
+    this.treeViewport   = document.getElementById('tree-canvas-viewport');
+    this.treeCanvas     = document.getElementById('tree-canvas');
+    this.directoryEl    = document.getElementById('directory-content');
+    this.profileEl      = document.getElementById('profile-content');
+    this.statsEl        = document.getElementById('stats-content');
+    this.zoomIndicator  = document.getElementById('zoom-level-text');
 
     this.views = {
-      tree:    document.getElementById('view-tree'),
-      profile: document.getElementById('view-profile'),
-      stats:   document.getElementById('view-stats'),
+      tree:      document.getElementById('view-tree'),
+      directory: document.getElementById('view-directory'),
+      profile:   document.getElementById('view-profile'),
+      stats:     document.getElementById('view-stats'),
     };
 
     this._toastTimer = null;
@@ -26,29 +29,29 @@ class FamilyView {
 
   // ── Avatar helper — photo if available, else initials ────────
   _avatarHTML(p, size = 'sm') {
-    const dim   = size === 'lg' ? '90px' : size === 'md' ? '52px' : '36px';
-    const fsize = size === 'lg' ? '2.2rem' : size === 'md' ? '1.2rem' : '1rem';
+    const dim   = size === 'lg' ? '92px' : size === 'md' ? '58px' : '40px';
+    const fsize = size === 'lg' ? '2.1rem' : size === 'md' ? '1.3rem' : '0.95rem';
     const cls   = this._avatarCls(p);
     const dead  = !p.isAlive ? 'avatar-deceased' : '';
 
     if (p.photo) {
       return `<img src="${p.photo}" alt="${p.fullName}"
-        style="width:${dim};height:${dim};border-radius:50%;object-fit:cover;object-position:center top;
-               border:2px solid var(--clr-border);flex-shrink:0;${!p.isAlive ? 'opacity:.6;filter:grayscale(50%)' : ''}"
-        onerror="this.outerHTML=\`<div class='member-avatar ${cls} ${dead}' style='width:${dim};height:${dim};font-size:${fsize}'>${this._initials(p)}</div>\`"
+        class="neo-avatar-img ${dead}"
+        style="width:${dim};height:${dim};border-radius:50%;object-fit:cover;object-position:center top;border:2.5px solid var(--clr-border);flex-shrink:0"
+        onerror="this.outerHTML=\`<div class='neo-avatar ${cls} ${dead}' style='width:${dim};height:${dim};font-size:${fsize}'>${this._initials(p)}</div>\`"
       />`;
     }
-    return `<div class="member-avatar ${cls} ${dead}"
-      style="width:${dim};height:${dim};font-size:${fsize};border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;flex-shrink:0">
+    return `<div class="neo-avatar ${cls} ${dead}"
+      style="width:${dim};height:${dim};font-size:${fsize};border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;border:2.5px solid var(--clr-border);flex-shrink:0">
       ${this._initials(p)}
     </div>`;
   }
 
   _initials(p) {
-    const parts = (p.firstName || '').trim().split(' ');
+    const parts = (p.fullName || p.firstName || '').trim().split(' ');
     return parts.length >= 2
       ? (parts[0][0] + parts[1][0]).toUpperCase()
-      : ((p.firstName || '?')[0] + (p.lastName || '?')[0]).toUpperCase();
+      : ((p.nickname || '?')[0] || '?').toUpperCase();
   }
 
   _formatDob(dob) {
@@ -58,360 +61,336 @@ class FamilyView {
     return `${+d} ${months[+m - 1]} ${y}`;
   }
 
-  _yearRange(p) {
-    return p.dateOfDeath
-      ? `${p.birthYear} – ${p.deathYear}`
-      : `b. ${p.birthYear}`;
-  }
-
   _avatarCls(p) {
     return p.gender === 'female' ? 'avatar-female' : 'avatar-male';
   }
 
-  _genLabel(gen) {
-    const labels = [
-      'Generation 1 — Parents',
-      'Generation 2 — Children',
-      'Generation 3 — Grandchildren',
-      'Generation 4 — Great-grandchildren',
-    ];
-    return labels[gen] || `Generation ${gen + 1}`;
-  }
-
-  _statusBadge(status) {
-    const map = {
-      married:  { icon: '💍', cls: 'married' },
-      divorced: { icon: '💔', cls: 'divorced' },
-      widowed:  { icon: '🕊️', cls: 'widowed' },
-    };
-    return map[status] || { icon: '❤️', cls: '' };
-  }
-
   // ── View Switcher ─────────────────────────────────────────────
-
   showView(name) {
-    Object.entries(this.views).forEach(([k, el]) =>
-      el.classList.toggle('active', k === name)
-    );
-    this.navBtns.forEach(btn =>
-      btn.classList.toggle('active', btn.dataset.view === name)
-    );
+    Object.entries(this.views).forEach(([k, el]) => {
+      if (el) el.classList.toggle('active', k === name);
+    });
+    this.navBtns.forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.view === name);
+    });
   }
 
-  // ── Sidebar Member List ───────────────────────────────────────
+  // ── Pan & Zoom Canvas Transform ───────────────────────────────
+  updateCanvasTransform(panX, panY, scale) {
+    if (this.treeCanvas) {
+      this.treeCanvas.style.transform = `translate(${panX}px, ${panY}px) scale(${scale})`;
+      this.treeCanvas.style.transformOrigin = 'center center';
+    }
+    if (this.zoomIndicator) {
+      this.zoomIndicator.textContent = `${Math.round(scale * 100)}%`;
+    }
+  }
 
-  renderMemberList(people, selectedId = null) {
-    if (!people.length) {
-      this.memberList.innerHTML = `
-        <div class="empty-state" style="height:150px">
-          <div class="empty-icon">🔍</div><p>Tiada ahli dijumpai</p>
-        </div>`;
+  // ── Tree View (One Single Horizontal Row For Children) ─────────
+  renderTree(generationGroups, selectedId = null, filteredIds = null) {
+    if (!this.treeCanvas) return;
+
+    if (!generationGroups.length) {
+      this.treeCanvas.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-icon">⏳</div>
+          <p>No family data available.</p>
+        </div>
+      `;
       return;
     }
-    this.memberList.innerHTML = people.map(p => `
-      <div class="member-list-item ${p.id === selectedId ? 'selected' : ''}" data-id="${p.id}">
-        ${this._avatarHTML(p, 'sm')}
-        <div class="member-info-small">
-          <div class="name">
-            <strong>${p.nickname}</strong>
-            ${p.nickname === 'Ateh' || p.id === 'p5' ? '<span style="font-size:.68rem;background:#fef3c7;color:#b45309;padding:1px 5px;border-radius:99px;font-weight:700;margin-left:4px">Saya</span>' : ''}
-          </div>
-          <div class="meta">${p.profession || 'Ahli Keluarga'}</div>
-        </div>
-        ${!p.isAlive ? '<span title="Deceased" style="color:var(--clr-deceased)">✝</span>' : ''}
-      </div>`).join('');
-  }
-
-  // ── Tree View (Hierarchical Tree Map) ──────────────────────────
-
-  renderTree(generationGroups, selectedId = null) {
-    const el = this.views.tree;
-    el.innerHTML = `
-      <div class="tree-title">
-        🌳 Pokok Silsilah Keluarga Zamaksyari
-        <span style="font-size:.82rem;font-weight:400;color:var(--clr-muted);margin-left:auto">
-          💡 Klik mana-mana kad untuk mengetahui nama sebenar & profil penuh
-        </span>
-      </div>`;
-
-    if (!generationGroups.length) return;
 
     const parentsGroup  = generationGroups.find(g => g.gen === 0);
     const childrenGroup = generationGroups.find(g => g.gen === 1);
 
-    if (parentsGroup && childrenGroup) {
-      const treeWrapper = document.createElement('div');
-      treeWrapper.className = 'tree-wrapper';
+    const father = parentsGroup?.people.find(p => p.gender === 'male');
+    const mother = parentsGroup?.people.find(p => p.gender === 'female');
+    const children = childrenGroup?.people || [];
 
-      // ── Parents Level (Ayah + Ibu) ──
-      const parentsBlock = document.createElement('div');
-      parentsBlock.className = 'tree-parents-block';
-
-      const father = parentsGroup.people.find(p => p.gender === 'male') || parentsGroup.people[0];
-      const mother = parentsGroup.people.find(p => p.gender === 'female') || parentsGroup.people[1];
-
-      if (father && mother) {
-        parentsBlock.innerHTML = `
-          ${this._personCardHTML(father, selectedId)}
-          <div class="marriage-bridge">
-            <div class="marriage-line"></div>
-            <div class="marriage-pill">💍 Berkahwin</div>
+    this.treeCanvas.innerHTML = `
+      <div class="tree-root-layout">
+        <!-- Generation 1: Parents -->
+        <div class="tree-gen-tag">Generation 1 · Parents</div>
+        <div class="tree-parents-row">
+          ${father ? this._personCardHTML(father, selectedId, filteredIds) : ''}
+          <div class="tree-marriage-connector">
+            <div class="marriage-h-line"></div>
+            <div class="neo-marriage-pill">💍 Married</div>
           </div>
-          ${this._personCardHTML(mother, selectedId)}
-        `;
-      } else {
-        parentsGroup.people.forEach(p => {
-          parentsBlock.innerHTML += this._personCardHTML(p, selectedId);
-        });
-      }
-      treeWrapper.appendChild(parentsBlock);
+          ${mother ? this._personCardHTML(mother, selectedId, filteredIds) : ''}
+        </div>
 
-      // ── Tree Trunk Connector ──
-      const trunk = document.createElement('div');
-      trunk.className = 'tree-trunk';
-      treeWrapper.appendChild(trunk);
+        <!-- Vertical Trunk Connector -->
+        <div class="tree-vertical-trunk"></div>
 
-      // ── Children Level (Abang, Angah, Ateh, Kakcik, Iwan, Adik) ──
-      const childrenContainer = document.createElement('div');
-      childrenContainer.className = 'tree-children-container';
+        <!-- Generation 2: All 6 Children Aligned in ONE Single Horizontal Row -->
+        <div class="tree-gen-tag" style="margin-top:0.25rem">Generation 2 · Children (6 Siblings)</div>
+        <div class="tree-children-wrapper">
+          <!-- Horizontal Branch Line connecting across all children -->
+          <div class="tree-branch-bar"></div>
 
-      const childrenRow = document.createElement('div');
-      childrenRow.className = 'children-row-branch';
-
-      childrenGroup.people.forEach(p => {
-        const childNode = document.createElement('div');
-        childNode.className = 'child-tree-node';
-        childNode.innerHTML = this._personCardHTML(p, selectedId);
-        childrenRow.appendChild(childNode);
-      });
-
-      childrenContainer.appendChild(childrenRow);
-      treeWrapper.appendChild(childrenContainer);
-      el.appendChild(treeWrapper);
-    } else {
-      // Fallback
-      generationGroups.forEach(({ gen, people }) => {
-        const section = document.createElement('section');
-        section.className = 'generation';
-        section.innerHTML = `<div class="generation-label">${this._genLabel(gen)}</div>`;
-        const row = document.createElement('div');
-        row.className = 'children-row-branch';
-        people.forEach(p => { row.innerHTML += this._personCardHTML(p, selectedId); });
-        section.appendChild(row);
-        el.appendChild(section);
-      });
-    }
+          <div class="tree-children-single-row">
+            ${children.map(child => `
+              <div class="child-node-item">
+                <div class="child-drop-line"></div>
+                ${this._personCardHTML(child, selectedId, filteredIds)}
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      </div>
+    `;
   }
 
-  _personCardHTML(p, selectedId) {
-    const sel  = p.id === selectedId ? 'selected' : '';
-    const dec  = !p.isAlive ? 'deceased' : '';
-    const isMe = p.nickname === 'Ateh' || p.id === 'p5';
+  _personCardHTML(p, selectedId, filteredIds) {
+    const isSelected = p.id === selectedId ? 'selected' : '';
+    const isDeceased = !p.isAlive ? 'deceased' : '';
+    const isMe       = p.nickname === 'Ateh' || p.id === 'p5';
+    const isDimmed   = filteredIds && !filteredIds.has(p.id) ? 'card-dimmed' : '';
+    const isHighlight = filteredIds && filteredIds.has(p.id) && filteredIds.size < 8 ? 'card-highlighted' : '';
 
     return `
-      <div class="person-card ${sel} ${dec}" data-id="${p.id}" title="Tekan untuk ketahui profil penuh & nama sebenar">
-        ${isMe ? '<span class="card-badge-me">✨ Saya</span>' : ''}
-        ${!p.isAlive ? '<span class="deceased-stamp">✝</span>' : ''}
-        <div class="card-avatar ${this._avatarCls(p)}" style="overflow:hidden;padding:0">
-          ${p.photo
-            ? `<img src="${p.photo}" style="width:100%;height:100%;object-fit:cover;object-position:center top;border-radius:50%"
-                onerror="this.style.display='none';this.parentElement.textContent='${this._initials(p)}'">`
-            : this._initials(p)}
+      <div class="neo-person-card ${isSelected} ${isDeceased} ${isDimmed} ${isHighlight}"
+           data-id="${p.id}"
+           title="Click to view full personal profile">
+        ${isMe ? '<span class="neo-me-badge">✨ Me</span>' : ''}
+        ${!p.isAlive ? '<span class="neo-deceased-badge">Passed Away</span>' : ''}
+        
+        <div class="card-avatar-wrap">
+          ${this._avatarHTML(p, 'md')}
         </div>
-        <div class="card-nickname">${p.nickname}</div>
-        <div class="card-role">${p.profession || '—'}</div>
-        <div class="card-hint">Lihat Profil ➔</div>
-      </div>`;
+
+        <div class="card-nickname-text">${p.nickname}</div>
+        <div class="card-fullname-text">${p.fullName}</div>
+        <div class="card-profession-text">${p.profession || 'Family Member'}</div>
+        <div class="card-action-btn">View Profile ➔</div>
+      </div>
+    `;
   }
 
-  // ── Profile View ──────────────────────────────────────────────
+  // ── Directory View (Responsive Grid) ──────────────────────────
+  renderDirectory(people, totalCount = 8, selectedId = null) {
+    if (!this.directoryEl) return;
 
+    if (!people.length) {
+      this.directoryEl.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-icon">🔍</div>
+          <p>No family members matched your active search & filters.</p>
+        </div>
+      `;
+      return;
+    }
+
+    this.directoryEl.innerHTML = `
+      <div class="neo-directory-grid">
+        ${people.map(p => `
+          <div class="neo-directory-card ${p.id === selectedId ? 'selected' : ''}" data-id="${p.id}">
+            <div class="dir-header-flex">
+              ${this._avatarHTML(p, 'md')}
+              <div class="dir-header-info">
+                <div class="dir-nickname-row">
+                  <strong class="dir-nickname-text">${p.nickname}</strong>
+                  ${p.id === 'p5' || p.nickname === 'Ateh' ? '<span class="neo-me-badge-sm">Me</span>' : ''}
+                </div>
+                <div class="dir-fullname-text">${p.fullName}</div>
+                <div class="dir-job-text">${p.profession || 'Family Member'}</div>
+              </div>
+            </div>
+
+            <div class="dir-pills-row">
+              <span class="neo-meta-pill">${p.gender === 'female' ? '♀ Female' : '♂ Male'}</span>
+              ${p.dob ? `<span class="neo-meta-pill">🎂 ${this._formatDob(p.dob)}</span>` : ''}
+              <span class="neo-meta-pill status-pill">● Living</span>
+            </div>
+
+            ${p.bio ? `<p class="dir-bio-quote">“${p.bio}”</p>` : ''}
+
+            <div class="dir-footer-action">
+              <span>Explore Kinship Profile</span>
+              <span class="neo-arrow">➔</span>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  }
+
+  // ── Profile View (Fixed Sizing & Clean Layout — No Collisions) ──
   renderProfile(person, father, mother, spouses, children, siblings) {
-    const isFemale = person.gender === 'female';
+    if (!this.profileEl) return;
 
-    const relChips = (list, icon) => {
-      if (!list.length)
-        return `<em style="font-size:.8rem;color:var(--clr-muted)">Tiada rekod</em>`;
+    const relButtons = (list, icon) => {
+      if (!list.length) return `<span class="rel-none-text">None recorded</span>`;
       return list.map(p => `
-        <button class="relation-chip" data-id="${p.id}">
-          ${icon} <strong>${p.nickname}</strong> <span style="font-size:.78rem;color:var(--clr-muted)">(${p.fullName})</span>
-          ${p.marriageStatus
-            ? `<span class="spouse-status ${p.marriageStatus}">${this._statusBadge(p.marriageStatus).icon} ${p.marriageStatus}</span>`
-            : ''}
-        </button>`).join('');
+        <button class="neo-rel-btn" data-id="${p.id}">
+          <span>${icon}</span>
+          <strong class="rel-nickname">${p.nickname}</strong>
+          <span class="rel-fullname">(${p.fullName})</span>
+          ${p.marriageStatus ? `<span class="rel-status">[${p.marriageStatus}]</span>` : ''}
+        </button>
+      `).join('');
     };
 
-    const parents = [father, mother].filter(Boolean);
-
-    this.views.profile.innerHTML = `
-      <div class="profile-card">
-        <div class="profile-banner ${isFemale ? 'female' : ''}"></div>
-        <div class="profile-body">
-          <div class="profile-avatar-lg ${this._avatarCls(person)}" style="overflow:hidden;padding:0">
-            ${person.photo
-              ? `<img src="${person.photo}" style="width:100%;height:100%;object-fit:cover;object-position:center top;border-radius:50%"
-                  onerror="this.style.display='none';this.parentElement.textContent='${this._initials(person)}'">`
-              : this._initials(person)}
-          </div>
-          <div class="profile-header-info">
-            <span class="profile-nickname-badge">Nama Panggilan: <strong>${person.nickname}</strong></span>
-            <h2>${person.fullName}</h2>
-            <p class="subtitle">
-              ${person.profession || 'Pekerjaan tidak dinyatakan'}
-              ${!person.isAlive
-                ? ' &nbsp;·&nbsp; <strong style="color:var(--clr-deceased)">Meninggal Dunia</strong>'
-                : ' &nbsp;·&nbsp; <span style="color:var(--clr-accent2)">● Hidup</span>'}
-            </p>
+    this.profileEl.innerHTML = `
+      <div class="profile-layout-container">
+        <div class="neo-profile-box">
+          <!-- Top Clean Banner -->
+          <div class="neo-profile-banner">
+            <button id="btn-back-tree" class="neo-btn-back">← Back to Family Tree</button>
+            <span class="banner-right-status">● Living</span>
           </div>
 
-          <div class="profile-grid">
-            <!-- Maklumat Peribadi -->
-            <div class="info-section">
-              <h4>Maklumat Peribadi</h4>
-              <div class="info-row">
-                <span class="label">Nama Penuh</span>
-                <span class="value" style="font-weight:700;color:var(--clr-primary)">${person.fullName}</span>
+          <div class="profile-body-content">
+            <!-- Header Row with Avatar & Name Details side by side -->
+            <div class="profile-header-card">
+              <div class="profile-avatar-wrapper">
+                ${this._avatarHTML(person, 'lg')}
               </div>
-              <div class="info-row">
-                <span class="label">Nama Panggilan</span>
-                <span class="value">${person.nickname}</span>
-              </div>
-              <div class="info-row">
-                <span class="label">Tarikh Lahir</span>
-                <span class="value">${this._formatDob(person.dob)}</span>
-              </div>
-              ${!person.isAlive ? `
-              <div class="info-row">
-                <span class="label">Tarikh Kematian</span>
-                <span class="value">${this._formatDob(person.dateOfDeath)}</span>
-              </div>` : ''}
-              <div class="info-row">
-                <span class="label">Jantina</span>
-                <span class="value">${person.gender === 'female' ? '♀ Perempuan' : '♂ Lelaki'}</span>
-              </div>
-              <div class="info-row">
-                <span class="label">Pekerjaan</span>
-                <span class="value">${person.profession || '—'}</span>
+
+              <div class="profile-identity-details">
+                <div class="profile-nickname-badge">
+                  Nickname: <strong>${person.nickname}</strong>
+                </div>
+                <h2 class="profile-hero-name">${person.fullName}</h2>
+                <div class="profile-hero-meta">
+                  <span class="meta-item-job">${person.profession || 'Family Member'}</span>
+                  <span>·</span>
+                  <span class="meta-item-gender">${person.gender === 'female' ? '♀ Female' : '♂ Male'}</span>
+                  ${person.dob ? `<span>·</span> <span class="meta-item-dob">Born ${this._formatDob(person.dob)}</span>` : ''}
+                </div>
               </div>
             </div>
 
-            <!-- Hubungan Keluarga -->
-            <div class="info-section">
-              <h4>Hubungan Keluarga</h4>
+            <!-- Two-column info grid -->
+            <div class="profile-columns-grid">
+              <!-- Left: Personal Information -->
+              <div class="neo-column-card">
+                <h3 class="column-card-title">Personal Details</h3>
+                <div class="detail-row"><span>Full Name</span><strong>${person.fullName}</strong></div>
+                <div class="detail-row"><span>Nickname</span><span>${person.nickname}</span></div>
+                <div class="detail-row"><span>Date of Birth</span><span>${this._formatDob(person.dob)}</span></div>
+                <div class="detail-row"><span>Gender</span><span>${person.gender === 'female' ? '♀ Female' : '♂ Male'}</span></div>
+                <div class="detail-row"><span>Profession</span><span>${person.profession || '—'}</span></div>
+                <div class="detail-row"><span>Status</span><span class="living-badge">● Living</span></div>
+              </div>
 
-              <div class="rel-group">
-                <div class="rel-label">👴 Bapa</div>
-                <div class="relation-chips">
-                  ${father
-                    ? `<button class="relation-chip" data-id="${father.id}">👤 <strong>${father.nickname}</strong> <span style="font-size:.78rem;color:var(--clr-muted)">(${father.fullName})</span></button>`
-                    : '<em style="font-size:.8rem;color:var(--clr-muted)">Tiada rekod</em>'}
+              <!-- Right: Family Kinship Connections -->
+              <div class="neo-column-card">
+                <h3 class="column-card-title">Family Relationships</h3>
+                <div class="kinship-group">
+                  <label>Father</label>
+                  <div class="kinship-btns-wrap">${relButtons(father ? [father] : [], '👨')}</div>
                 </div>
-              </div>
-
-              <div class="rel-group">
-                <div class="rel-label">👩 Ibu</div>
-                <div class="relation-chips">
-                  ${mother
-                    ? `<button class="relation-chip" data-id="${mother.id}">👤 <strong>${mother.nickname}</strong> <span style="font-size:.78rem;color:var(--clr-muted)">(${mother.fullName})</span></button>`
-                    : '<em style="font-size:.8rem;color:var(--clr-muted)">Tiada rekod</em>'}
+                <div class="kinship-group">
+                  <label>Mother</label>
+                  <div class="kinship-btns-wrap">${relButtons(mother ? [mother] : [], '👩')}</div>
                 </div>
-              </div>
-
-              <div class="rel-group">
-                <div class="rel-label">💍 Pasangan</div>
-                <div class="relation-chips">${relChips(spouses, '💑')}</div>
-              </div>
-
-              <div class="rel-group">
-                <div class="rel-label">👶 Anak-anak</div>
-                <div class="relation-chips">${relChips(children, '🧒')}</div>
-              </div>
-
-              <div class="rel-group">
-                <div class="rel-label">👫 Adik-beradik</div>
-                <div class="relation-chips">${relChips(siblings, '🤝')}</div>
+                <div class="kinship-group">
+                  <label>Spouse</label>
+                  <div class="kinship-btns-wrap">${relButtons(spouses, '💍')}</div>
+                </div>
+                <div class="kinship-group">
+                  <label>Children</label>
+                  <div class="kinship-btns-wrap">${relButtons(children, '🧒')}</div>
+                </div>
+                <div class="kinship-group">
+                  <label>Siblings</label>
+                  <div class="kinship-btns-wrap">${relButtons(siblings, '🤝')}</div>
+                </div>
               </div>
             </div>
-          </div>
 
-          ${person.bio ? `<div class="bio-section">"${person.bio}"</div>` : ''}
+            ${person.bio ? `
+              <div class="neo-bio-callout">
+                <h3 class="bio-callout-title">Biography & Personal Notes</h3>
+                <p class="bio-callout-text">“${person.bio}”</p>
+              </div>
+            ` : ''}
 
-          <div class="profile-nav-btns">
-            <button class="btn btn-outline" id="btn-back-tree">← Kembali ke Pokok Silsilah</button>
+            <div class="profile-bottom-nav">
+              <button id="btn-back-tree-bottom" class="neo-btn-back-main">← Back to Family Tree</button>
+            </div>
           </div>
         </div>
-      </div>`;
+      </div>
+    `;
   }
 
-  // ── Stats View ────────────────────────────────────────────────
-
+  // ── Statistics View ───────────────────────────────────────────
   renderStats(stats) {
-    const topProf = Object.entries(stats.professions)
-      .sort((a, b) => b[1] - a[1]).slice(0, 8);
-    const maxProf = Math.max(...topProf.map(o => o[1]), 1);
+    if (!this.statsEl) return;
 
-    const genEntries = Object.entries(stats.genCounts).sort((a, b) => +a[0] - +b[0]);
-    const maxGen = Math.max(...genEntries.map(e => e[1]), 1);
+    const maxGen   = Math.max(...Object.values(stats.genCounts), 1);
+    const profList = Object.entries(stats.professions || {}).sort((a, b) => b[1] - a[1]);
+    const maxProf  = Math.max(...profList.map(o => o[1]), 1);
 
-    const bar = (label, count, max, color = '') => `
-      <div class="bar-row">
-        <div class="bar-label">${label}</div>
-        <div class="bar-track">
-          <div class="bar-fill" style="width:${Math.round(count / max * 100)}%;${color}"></div>
+    const cards = [
+      { icon: '👥', num: stats.total, label: 'Total Members' },
+      { icon: '♂', num: stats.male, label: 'Male' },
+      { icon: '♀', num: stats.female, label: 'Female' },
+      { icon: '💚', num: stats.living, label: 'Living' },
+      { icon: '🌱', num: stats.generations, label: 'Generations' },
+      { icon: '💼', num: profList.length, label: 'Occupations' },
+    ];
+
+    this.statsEl.innerHTML = `
+      <div class="stats-root-container">
+        <!-- Metric Cards Grid -->
+        <div class="neo-metric-grid">
+          ${cards.map(c => `
+            <div class="neo-metric-card">
+              <div class="metric-icon">${c.icon}</div>
+              <div class="metric-number">${c.num}</div>
+              <div class="metric-label">${c.label}</div>
+            </div>
+          `).join('')}
         </div>
-        <div class="bar-count">${count}</div>
-      </div>`;
 
-    this.views.stats.innerHTML = `
-      <div class="stats-title">📊 Statistik Keluarga Zamaksyari</div>
+        <!-- Charts Grid -->
+        <div class="neo-charts-grid">
+          <div class="neo-chart-card">
+            <h3 class="chart-header-title">Professions & Roles</h3>
+            <div class="chart-bars-container">
+              ${profList.map(([p, count]) => `
+                <div class="neo-bar-row">
+                  <span class="neo-bar-title" title="${p}">${p}</span>
+                  <div class="neo-bar-track">
+                    <div class="neo-bar-fill" style="width:${Math.round(count / maxProf * 100)}%"></div>
+                  </div>
+                  <span class="neo-bar-digit">${count}</span>
+                </div>
+              `).join('')}
+            </div>
+          </div>
 
-      <div class="stats-grid">
-        <div class="stat-card"><div class="stat-icon">👥</div>
-          <div class="stat-value">${stats.total}</div><div class="stat-label">Jumlah Ahli</div></div>
-        <div class="stat-card"><div class="stat-icon">♂</div>
-          <div class="stat-value">${stats.male}</div><div class="stat-label">Lelaki</div></div>
-        <div class="stat-card"><div class="stat-icon">♀</div>
-          <div class="stat-value">${stats.female}</div><div class="stat-label">Perempuan</div></div>
-        <div class="stat-card"><div class="stat-icon">💚</div>
-          <div class="stat-value">${stats.living}</div><div class="stat-label">Hidup</div></div>
-        <div class="stat-card"><div class="stat-icon">🕊️</div>
-          <div class="stat-value">${stats.deceased}</div><div class="stat-label">Meninggal</div></div>
-        <div class="stat-card"><div class="stat-icon">🌱</div>
-          <div class="stat-value">${stats.generations}</div><div class="stat-label">Generasi</div></div>
+          <div class="neo-chart-card">
+            <h3 class="chart-header-title">Members by Generation</h3>
+            <div class="chart-bars-container">
+              ${Object.entries(stats.genCounts)
+                .sort((a, b) => +a[0] - +b[0])
+                .map(([g, count]) => `
+                  <div class="neo-bar-row">
+                    <span class="neo-bar-title">Generation ${+g + 1} (${+g === 0 ? 'Parents' : 'Children'})</span>
+                    <div class="neo-bar-track">
+                      <div class="neo-bar-fill fill-accent" style="width:${Math.round(count / maxGen * 100)}%"></div>
+                    </div>
+                    <span class="neo-bar-digit">${count}</span>
+                  </div>
+                `).join('')}
+            </div>
+          </div>
+        </div>
       </div>
-
-      <div class="chart-section">
-        <h4>Peranan / Pekerjaan</h4>
-        <div class="bar-chart">
-          ${topProf.map(([p, c]) => bar(p, c, maxProf)).join('')}
-        </div>
-      </div>
-
-      <div class="chart-section">
-        <h4>Bilangan Ahli Mengikut Generasi</h4>
-        <div class="bar-chart">
-          ${genEntries.map(([g, c]) =>
-            bar(`Generasi ${+g + 1} (${+g === 0 ? 'Ibu Bapa' : 'Anak-anak'})`, c, maxGen, 'background:linear-gradient(90deg,var(--clr-accent2),var(--clr-accent))')).join('')}
-        </div>
-      </div>`;
+    `;
   }
 
-  // ── Toast ─────────────────────────────────────────────────────
-
-  showToast(msg, ms = 2500) {
+  // ── Toast Notification ─────────────────────────────────────────
+  showToast(msg) {
+    if (!this.toast) return;
     this.toast.textContent = msg;
-    this.toast.classList.add('show');
+    this.toast.classList.add('visible');
     clearTimeout(this._toastTimer);
-    this._toastTimer = setTimeout(() => this.toast.classList.remove('show'), ms);
+    this._toastTimer = setTimeout(() => this.toast.classList.remove('visible'), 2800);
   }
-
-  // ── Modal ─────────────────────────────────────────────────────
-
-  showModal(title, bodyHTML) {
-    document.getElementById('modal-title').textContent = title;
-    document.getElementById('modal-body').innerHTML = bodyHTML;
-    this.modalOverlay.classList.add('open');
-  }
-
-  closeModal() { this.modalOverlay.classList.remove('open'); }
 }
