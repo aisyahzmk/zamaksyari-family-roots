@@ -31,6 +31,8 @@ export type Person = RawPerson & {
   birthYear: string;
   deathYear: string | null;
   isAlive: boolean;
+  /** 1 = parents, 2 = children, … (computed from parent links) */
+  generation: number;
 };
 
 export const RAW_PEOPLE: RawPerson[] = [
@@ -53,6 +55,7 @@ export const normalise = (r: RawPerson): Person => ({
   birthYear: r.dob ? (r.dob.split("-")[0] ?? "?") : "?",
   deathYear: r.dateOfDeath ? (r.dateOfDeath.split("-")[0] ?? null) : null,
   isAlive: !r.dateOfDeath,
+  generation: 1,
 });
 
 export class FamilyModel {
