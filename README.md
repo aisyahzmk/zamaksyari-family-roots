@@ -1,11 +1,10 @@
 # Zamaksyari Family Heritage Tree
 ### ITT588 — Web Application Development (Lab Work 4)
 
-- **Name:** Siti Aisyah binti Zamaksyari  
-- **Course:** ITT588 — Web Application Development  
+- **Name:** Siti Aisyah binti Zamaksyari
+- **ID STUDENT:** 2026128783
+- **Course:** ITT588   
 - **Lab:** Lab Work 4 — Family Heritage Tree  
-- **Architecture:** Model-View-Controller (MVC)  
-- **Design:** Earthy Minimal Neobrutalism  
 
 ---
 
