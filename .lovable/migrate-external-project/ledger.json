@@ -1,0 +1,6 @@
+[
+ {"capability":"code","source":"static HTML/JS MVC app","outcome":"rebuilt in React/TanStack","status":"verified","next_action":null},
+ {"capability":"records","source":"public/data/people.json (8 people)","outcome":"bundled in app","status":"verified","next_action":null},
+ {"capability":"uploaded files","source":"public/images (8 photos used)","outcome":"hosted assets","status":"verified","next_action":null},
+ {"capability":"database/auth/storage/integrations/secrets","source":"none detected","outcome":"not applicable","status":"verified","next_action":null}
+]
