@@ -31,6 +31,8 @@ export type Person = RawPerson & {
   birthYear: string;
   deathYear: string | null;
   isAlive: boolean;
+  /** 1 = parents, 2 = children, … (computed from parent links) */
+  generation: number;
 };
 
 export const RAW_PEOPLE: RawPerson[] = [
@@ -53,12 +55,19 @@ export const normalise = (r: RawPerson): Person => ({
   birthYear: r.dob ? (r.dob.split("-")[0] ?? "?") : "?",
   deathYear: r.dateOfDeath ? (r.dateOfDeath.split("-")[0] ?? null) : null,
   isAlive: !r.dateOfDeath,
+  generation: 1,
 });
 
 export class FamilyModel {
   people: Person[];
   constructor(raw: RawPerson[]) {
     this.people = raw.map(normalise);
+    const gens = this.computeGenerations();
+    this.people.forEach((p) => (p.generation = (gens.get(p.id) ?? 0) + 1));
+  }
+  /** Sorted list of generation numbers (1 = oldest). */
+  getGenerations() {
+    return [...new Set(this.people.map((p) => p.generation))].sort((a, b) => a - b);
   }
   getById(id: string | null) {
     return id ? (this.people.find((p) => p.id === id) ?? null) : null;
@@ -109,11 +118,12 @@ export class FamilyModel {
     });
     return [...groups.entries()].sort((a, b) => a[0] - b[0]).map(([gen, people]) => ({ gen, people }));
   }
-  search(query: string, gender: Gender | null) {
+  search(query: string, gender: Gender | null, generation: number | null = null) {
     const q = query.toLowerCase().trim();
     return this.people.filter(
       (p) =>
         (!gender || p.gender === gender) &&
+        (!generation || p.generation === generation) &&
         (!q ||
           p.nickname.toLowerCase().includes(q) ||
           p.fullName.toLowerCase().includes(q) ||

@@ -20,3 +20,16 @@ describe("family model", () => {
     expect(m.search("student", "male").map((p) => p.id)).toEqual(["p7"]);
   });
 });
+
+import { FamilyModel as FM2, RAW_PEOPLE as RP2 } from "./family";
+describe("generation tagging", () => {
+  const m = new FM2(RP2);
+  it("parents are Gen 1, children Gen 2", () => {
+    expect(m.getById("p1")?.generation).toBe(1);
+    expect(m.getById("p5")?.generation).toBe(2);
+  });
+  it("filters by generation", () => {
+    expect(m.search("", null, 1).map((p) => p.id).sort()).toEqual(["p1", "p2"]);
+    expect(m.search("", null, 2)).toHaveLength(6);
+  });
+});
